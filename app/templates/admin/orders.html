@@ -1,0 +1,169 @@
+{% extends "admin/_base_admin.html" %}
+{% block title %}订单中心{% endblock %}
+
+{% block extra_style %}
+.filter-form { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filter-form label { font-size: 12px; color: #666; }
+.mono { font-family: Consolas, "Courier New", monospace; }
+.file-link { color: #1E9FFF; }
+.file-link:hover { text-decoration: underline; }
+.params { color: #666; font-size: 12px; }
+.params span {
+    display: inline-block;
+    padding: 1px 6px;
+    margin: 1px 3px 1px 0;
+    background: #f5f7fa;
+    border-radius: 3px;
+}
+.actions { white-space: nowrap; }
+{% endblock %}
+
+{% block body %}
+
+<div class="card">
+    <div class="card-head">
+        <h3>📋 订单中心 · 共 {{ pagination.total }} 条</h3>
+        <div class="tools">
+            <a class="btn btn-primary" href="{{ url_for('admin.queue') }}">🖨️ 打印队列</a>
+            <a class="btn" href="{{ url_for('admin.export_orders', status=filters.status, date_from=filters.date_from, date_to=filters.date_to, tel=filters.tel) }}">⬇ 导出 Excel</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <form class="filter-form" method="get" action="{{ url_for('admin.orders') }}">
+            <label>状态
+                <select class="form-select" name="status">
+                    <option value="active"    {% if filters.status == 'active'    %}selected{% endif %}>全部（含已支付/打印中/完成/失败）</option>
+                    <option value="unpaid"    {% if filters.status == 'unpaid'    %}selected{% endif %}>未支付</option>
+                    <option value="printing"  {% if filters.status == 'printing'  %}selected{% endif %}>已支付 / 打印中</option>
+                    <option value="done"      {% if filters.status == 'done'      %}selected{% endif %}>已完成</option>
+                    <option value="failed"    {% if filters.status == 'failed'    %}selected{% endif %}>打印失败</option>
+                    <option value="cancelled" {% if filters.status == 'cancelled' %}selected{% endif %}>已取消</option>
+                    <option value="all"       {% if filters.status == 'all'       %}selected{% endif %}>【全部含已取消】</option>
+                </select>
+            </label>
+            <label>日期
+                <input class="form-input" type="date" name="date_from" value="{{ filters.date_from }}" style="min-width:135px">
+            </label>
+            <span style="color:#999;">—</span>
+            <input class="form-input" type="date" name="date_to" value="{{ filters.date_to }}" style="min-width:135px">
+            <label>手机号
+                <input class="form-input" type="text" name="tel" value="{{ filters.tel }}" placeholder="可模糊搜索">
+            </label>
+            <button class="btn btn-primary" type="submit">🔍 筛选</button>
+            <a class="btn" href="{{ url_for('admin.orders') }}">重置</a>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body pad-sm">
+        {% if orders %}
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th style="width:130px">订单号</th>
+                    <th>文件 / 参数</th>
+                    <th style="width:110px">下单人</th>
+                    <th style="width:130px">下单时间</th>
+                    <th style="width:90px">打印点</th>
+                    <th style="width:70px">金额</th>
+                    <th style="width:80px">状态</th>
+                    <th style="width:250px">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in orders %}
+                {% set color = '黑白' if o.Print_Colour == 'CMYGray' else '彩色' %}
+                {% set way = '单面' if o.Print_way == 'one-sided' else ('双面长边' if o.Print_way == 'two-sided-long-edge' else '双面短边') %}
+                {% set is_pdf = o.File_Dir and o.File_Dir.lower().endswith('.pdf') %}
+                {% set is_img = o.File_Dir and (o.File_Dir.lower().endswith('.jpg') or o.File_Dir.lower().endswith('.jpeg') or o.File_Dir.lower().endswith('.png')) %}
+                {% set st = o.Print_Status %}
+                <tr>
+                    <td class="mono">{{ o.Trade_Number }}</td>
+                    <td>
+                        {% if is_pdf %}
+                            <a class="file-link" target="_blank"
+                               href="{{ url_for('admin.look_media', media='viewer.html') }}?file=/static/Upload_Files/{{ o.File_Dir }}">📄 {{ o.File_Name }}</a>
+                        {% elif is_img %}
+                            <a class="file-link" target="_blank"
+                               href="{{ url_for('admin.look_picture', picture=o.File_Dir) }}">🖼️ {{ o.File_Name }}</a>
+                        {% else %}
+                            <span>{{ o.File_Name }}</span>
+                        {% endif %}
+                        <div class="params" style="margin-top:4px;">
+                            <span>{{ o.Print_Copies }} 份</span>
+                            <span>{{ color }}</span>
+                            <span>{{ way }}</span>
+                            <span>{{ o.Print_size }}</span>
+                            {% if o.Print_pages %}<span>{{ o.Print_pages }} 页</span>{% endif %}
+                        </div>
+                    </td>
+                    <td class="mono">{{ user_map.get(o.User_Id, '-') }}</td>
+                    <td>{{ o.Born_Date.strftime('%m-%d %H:%M') if o.Born_Date else '-' }}</td>
+                    <td>{{ place_labels.get(o.Print_Place, o.Print_Place) }}</td>
+                    <td style="color:#FF5722">￥{{ '%.2f' % (o.Print_Money or 0) }}</td>
+                    <td>
+                        <span class="badge badge-{{ status_badges.get(st, 'gray') }}">
+                            {{ status_labels.get(st, st) }}
+                        </span>
+                    </td>
+                    <td class="actions">
+                        <a class="btn btn-sm" href="{{ url_for('admin.order_detail', trade_number=o.Trade_Number) }}">详情</a>
+                        {% if st == 2 or st == 1 %}
+                            <form class="inline-form" method="post"
+                                  action="{{ url_for('admin.change_order_status', trade_number=o.Trade_Number) }}">
+                                <input type="hidden" name="next" value="{{ request.full_path }}">
+                                <input type="hidden" name="status" value="3">
+                                <button class="btn btn-sm btn-success">✓ 完成</button>
+                            </form>
+                            <form class="inline-form" method="post"
+                                  action="{{ url_for('admin.change_order_status', trade_number=o.Trade_Number) }}"
+                                  onsubmit="return confirm('确认将此单标记为打印失败？');">
+                                <input type="hidden" name="next" value="{{ request.full_path }}">
+                                <input type="hidden" name="status" value="-1">
+                                <button class="btn btn-sm btn-danger">✗ 失败</button>
+                            </form>
+                        {% elif st == -1 %}
+                            <form class="inline-form" method="post"
+                                  action="{{ url_for('admin.change_order_status', trade_number=o.Trade_Number) }}">
+                                <input type="hidden" name="next" value="{{ request.full_path }}">
+                                <input type="hidden" name="status" value="2">
+                                <button class="btn btn-sm btn-primary">↻ 重新打印</button>
+                            </form>
+                        {% elif st == 0 %}
+                            <form class="inline-form" method="post"
+                                  action="{{ url_for('admin.change_order_status', trade_number=o.Trade_Number) }}"
+                                  onsubmit="return confirm('未支付单标记失败后将不再计入营业额。');">
+                                <input type="hidden" name="next" value="{{ request.full_path }}">
+                                <input type="hidden" name="status" value="-1">
+                                <button class="btn btn-sm btn-danger">✗ 标记失败</button>
+                            </form>
+                        {% else %}
+                            <span style="color:#bbb;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {# 分页 #}
+        <div class="pager">
+            <span>共 {{ pagination.total }} 条，第 {{ pagination.page }} / {{ pagination.pages }} 页</span>
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('admin.orders', page=pagination.prev_num, status=filters.status, date_from=filters.date_from, date_to=filters.date_to, tel=filters.tel) }}">‹ 上一页</a>
+            {% else %}
+                <span class="disabled">‹ 上一页</span>
+            {% endif %}
+            {% if pagination.has_next %}
+                <a href="{{ url_for('admin.orders', page=pagination.next_num, status=filters.status, date_from=filters.date_from, date_to=filters.date_to, tel=filters.tel) }}">下一页 ›</a>
+            {% else %}
+                <span class="disabled">下一页 ›</span>
+            {% endif %}
+        </div>
+        {% else %}
+            <div class="empty">没有符合筛选条件的订单</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

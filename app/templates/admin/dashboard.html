@@ -1,0 +1,184 @@
+{% extends "admin/_base_admin.html" %}
+{% block title %}仪表盘{% endblock %}
+
+{% block extra_style %}
+.trend-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 180px;
+    padding: 10px 4px 0;
+}
+.trend-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 40px;
+}
+.trend-bar {
+    width: 70%;
+    max-width: 48px;
+    background: linear-gradient(180deg, #1E9FFF 0%, #5FB878 100%);
+    border-radius: 4px 4px 0 0;
+    min-height: 2px;
+    transition: all .3s;
+}
+.trend-label { font-size: 11px; color: #999; margin-top: 6px; }
+.trend-value { font-size: 12px; color: #333; margin-top: 2px; font-weight: 500; }
+
+.pie-row { display: flex; gap: 18px; flex-wrap: wrap; }
+.pie-row .item {
+    flex: 1;
+    min-width: 140px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #fafbfc;
+    border-radius: 6px;
+}
+.pie-row .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.pie-row .kv { flex: 1; }
+.pie-row .k { font-size: 12px; color: #666; }
+.pie-row .v { font-size: 18px; color: #333; font-weight: 500; }
+
+.ranking {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.ranking td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f2f5;
+}
+.ranking .rank {
+    width: 34px;
+    height: 22px;
+    border-radius: 11px;
+    background: #f0f2f5;
+    color: #888;
+    text-align: center;
+    line-height: 22px;
+    font-size: 12px;
+    display: inline-block;
+}
+.ranking .rank.top1 { background: #FFE8CC; color: #FF7D00; font-weight: 600; }
+.ranking .rank.top2 { background: #F0F2F5; color: #777; font-weight: 600; }
+.ranking .rank.top3 { background: #FFF3E0; color: #A06420; font-weight: 600; }
+{% endblock %}
+
+{% block body %}
+<div class="metric-grid" style="margin-bottom:16px;">
+    <div class="metric">
+        <div class="label">今日订单</div>
+        <div class="value">{{ today_orders_count }}</div>
+        <div class="sub">已支付 {{ today_paid_count }} 单</div>
+    </div>
+    <div class="metric">
+        <div class="label">今日营业额</div>
+        <div class="value orange">￥{{ '%.2f' % today_revenue }}</div>
+        <div class="sub">{{ today.strftime('%Y-%m-%d') }}</div>
+    </div>
+    <div class="metric">
+        <div class="label">今日打印页数</div>
+        <div class="value green">{{ today_pages }}</div>
+        <div class="sub">按份数 × 页数</div>
+    </div>
+    <div class="metric">
+        <div class="label">待打印队列</div>
+        <div class="value purple">{{ queue_count }}</div>
+        <div class="sub">
+            <a href="{{ url_for('admin.queue') }}" style="color:#1E9FFF;">进入队列 →</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head">
+        <h3>📈 近 7 天订单趋势（已支付）</h3>
+    </div>
+    <div class="card-body">
+        {% if max_trend_count > 0 %}
+        <div class="trend-chart">
+            {% for t in trend %}
+            <div class="trend-col" title="{{ t.count }} 单 / ￥{{ t.revenue }}">
+                <div class="trend-value">{{ t.count }}</div>
+                <div class="trend-bar" style="height: {{ (t.count / max_trend_count * 150) | round(0) }}px"></div>
+                <div class="trend-label">{{ t.date }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+            <div class="empty">近 7 天还没有已支付订单</div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+    <div class="card">
+        <div class="card-head"><h3>🎨 颜色 / 单双面占比</h3></div>
+        <div class="card-body">
+            <div class="pie-row" style="margin-bottom:10px;">
+                <strong style="color:#666;font-size:13px;width:100%;">颜色</strong>
+            </div>
+            <div class="pie-row">
+                {% set total_color = (color_stats | map(attribute=1) | sum) or 1 %}
+                {% for row in color_stats %}
+                <div class="item">
+                    <span class="dot" style="background:{{ '#7E8BA3' if row[0] == 'CMYGray' else '#FF7D00' }};"></span>
+                    <div class="kv">
+                        <div class="k">{{ '黑白' if row[0] == 'CMYGray' else '彩色' }}</div>
+                        <div class="v">{{ row[1] }} <span style="font-size:12px;color:#999;">({{ (row[1] / total_color * 100) | round(0) }}%)</span></div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty" style="padding:20px;">暂无数据</div>
+                {% endfor %}
+            </div>
+
+            <div class="pie-row" style="margin:16px 0 10px;">
+                <strong style="color:#666;font-size:13px;width:100%;">单双面</strong>
+            </div>
+            <div class="pie-row">
+                {% set total_way = (way_stats | map(attribute=1) | sum) or 1 %}
+                {% for row in way_stats %}
+                {% set label = '单面' if row[0] == 'one-sided' else ('双面长边' if row[0] == 'two-sided-long-edge' else '双面短边') %}
+                <div class="item">
+                    <span class="dot" style="background:{{ '#1E9FFF' if row[0] == 'one-sided' else '#5FB878' }};"></span>
+                    <div class="kv">
+                        <div class="k">{{ label }}</div>
+                        <div class="v">{{ row[1] }} <span style="font-size:12px;color:#999;">({{ (row[1] / total_way * 100) | round(0) }}%)</span></div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty" style="padding:20px;">暂无数据</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-head"><h3>🏆 TOP10 活跃用户（按订单数）</h3></div>
+        <div class="card-body" style="padding:6px 0;">
+            {% if top_users %}
+            <table class="ranking">
+                {% for u in top_users %}
+                <tr>
+                    <td style="width:60px;">
+                        <span class="rank {% if loop.index == 1 %}top1{% elif loop.index == 2 %}top2{% elif loop.index == 3 %}top3{% endif %}">{{ loop.index }}</span>
+                    </td>
+                    <td style="font-family:Consolas,monospace;">{{ u.tel }}</td>
+                    <td style="text-align:right;">{{ u.orders }} 单</td>
+                    <td style="text-align:right;color:#FF5722;">￥{{ '%.2f' % u.revenue }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+                <div class="empty">暂无数据</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,383 @@
+{% extends "use_templates/_base_stamp.html" %}
+{% set active = 'me' %}
+{% block title %}个人中心{% endblock %}
+
+{% block extra_style %}
+/* ---- 个人中心 ---- */
+.pc-wrap { max-width: 1200px; margin: 32px auto; padding: 0 16px; }
+
+.pc-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,.06);
+    margin-bottom: 20px;
+}
+
+/* 账户卡片 */
+.pc-account {
+    display: flex;
+    align-items: center;
+    padding: 28px 32px;
+    gap: 24px;
+}
+.pc-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1E9FFF, #5FB878);
+    color: #fff;
+    font-size: 30px;
+    font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    flex: 0 0 72px;
+}
+.pc-account-info { flex: 1; }
+.pc-tel { font-size: 22px; color: #222; font-weight: 500; letter-spacing: 1px; }
+.pc-meta { margin-top: 6px; color: #888; font-size: 13px; }
+.pc-meta span { margin-right: 18px; }
+.pc-stats {
+    display: flex;
+    gap: 36px;
+    padding-right: 20px;
+}
+.pc-stat { text-align: center; }
+.pc-stat .num { font-size: 24px; color: #1E9FFF; font-weight: 500; }
+.pc-stat .label { font-size: 12px; color: #888; margin-top: 4px; }
+.pc-logout {
+    padding: 8px 18px;
+    border: 1px solid #ddd;
+    color: #666;
+    border-radius: 4px;
+    font-size: 13px;
+    transition: all .2s;
+}
+.pc-logout:hover { color: #FF5722; border-color: #FF5722; }
+
+/* Tab 栏 */
+.pc-tabs {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    padding: 0 32px;
+}
+.pc-tab {
+    padding: 14px 20px;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+    transition: color .2s;
+}
+.pc-tab:hover { color: #1E9FFF; }
+.pc-tab.active { color: #1E9FFF; font-weight: 500; }
+.pc-tab.active::after {
+    content: "";
+    position: absolute;
+    left: 18px; right: 18px; bottom: -1px;
+    height: 2px;
+    background: #1E9FFF;
+}
+.pc-tab .badge {
+    display: inline-block;
+    background: #f0f2f5;
+    color: #888;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 12px;
+    margin-left: 6px;
+    min-width: 20px;
+    text-align: center;
+}
+.pc-tab.active .badge { background: #E8F4FF; color: #1E9FFF; }
+
+/* 订单表格 —— 用 table-layout: fixed 固定列宽，避免状态/操作列长度差异挤动整行 */
+.pc-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.pc-table th, .pc-table td {
+    padding: 14px 12px;
+    text-align: left;
+    font-size: 13px;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+    word-break: break-all;
+}
+.pc-table th { background: #fafafa; color: #666; font-weight: 500; }
+.pc-table tr:hover td { background: #fafcff; }
+
+/* 固定各列宽度，让每一行同列对齐 */
+.pc-table col.col-order   { width: 17%; }
+.pc-table col.col-params  { width: 22%; }
+.pc-table col.col-time    { width: 12%; }
+.pc-table col.col-place   { width: 12%; }
+.pc-table col.col-money   { width: 8%;  }
+.pc-table col.col-status  { width: 11%; }
+.pc-table col.col-actions { width: 18%; }
+
+.pc-table .trade-no {
+    font-family: Consolas, "Courier New", monospace;
+    color: #1E9FFF;
+    display: block;
+    margin-bottom: 4px;
+}
+.pc-table .file-name {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #333;
+}
+.pc-table .money { color: #FF5722; font-weight: 500; white-space: nowrap; }
+
+/* 参数列：每项作为小标签，定宽排布，视觉上跨行对齐 */
+.pc-params {
+    color: #666;
+    font-size: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 6px;
+}
+.pc-params span {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #f5f7fa;
+    border-radius: 3px;
+    line-height: 1.5;
+}
+
+.pc-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 500;
+}
+.pc-status-unpaid { background: #FFF5E5; color: #FF9800; }
+.pc-status-paid   { background: #E8F4FF; color: #1E9FFF; }
+.pc-status-printing { background: #FFF0F6; color: #C060C0; }
+.pc-status-done   { background: #F0F9EB; color: #52C41A; }
+.pc-status-failed { background: #FFECEC; color: #F53F3F; }
+.pc-status-cancelled { background: #F0F0F0; color: #888; }
+
+/* 行内操作按钮 */
+.pc-actions { white-space: nowrap; }
+.pc-btn {
+    display: inline-block;
+    padding: 5px 12px;
+    margin: 2px 4px 2px 0;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    background: #fff;
+    line-height: 1.4;
+}
+.pc-btn-primary { background: #1E9FFF; color: #fff; border-color: #1E9FFF; }
+.pc-btn-primary:hover { background: #1890ff; }
+.pc-btn-ghost   { border-color: #ddd; color: #666; }
+.pc-btn-ghost:hover { border-color: #1E9FFF; color: #1E9FFF; }
+.pc-btn-danger  { border-color: #ffd0d0; color: #F53F3F; }
+.pc-btn-danger:hover { background: #F53F3F; color: #fff; border-color: #F53F3F; }
+.inline-form { display: inline; }
+
+.pc-empty { padding: 80px 20px; text-align: center; color: #bbb; font-size: 14px; }
+.pc-empty a { color: #1E9FFF; }
+
+.pc-pickup {
+    display: inline-block;
+    margin-top: 4px;
+    font-family: Consolas, monospace;
+    background: #FFFBE6;
+    color: #C08B00;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.flash-bar {
+    background: #E8F4FF;
+    color: #1E9FFF;
+    padding: 10px 20px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+
+@media (max-width: 800px) {
+    .pc-account { flex-direction: column; align-items: flex-start; gap: 14px; }
+    .pc-stats { width: 100%; justify-content: space-between; padding: 0; }
+    .pc-tabs { overflow-x: auto; white-space: nowrap; }
+    .pc-tab { padding: 12px 14px; }
+    .pc-table th, .pc-table td { padding: 10px 8px; font-size: 12px; }
+    .pc-table .file-name { max-width: 120px; }
+}
+{% endblock %}
+
+{% block body %}
+<div class="pc-wrap">
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for m in messages %}
+                <div class="flash-bar">{{ m }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {# ========== A. 账户信息卡片 ========== #}
+    <div class="pc-card pc-account">
+        <div class="pc-avatar">{{ (current_user.Tel_Number or '?')[0] }}</div>
+        <div class="pc-account-info">
+            <div class="pc-tel">{{ tel_masked }}</div>
+            <div class="pc-meta">
+                <span>角色：{{ '管理员' if current_user.Role == 'admin' else '普通用户' }}</span>
+                {% if current_user.Register_Date %}
+                    <span>注册时间：{{ current_user.Register_Date }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="pc-stats">
+            <div class="pc-stat">
+                <div class="num">{{ counts.all }}</div>
+                <div class="label">累计订单</div>
+            </div>
+            <div class="pc-stat">
+                <div class="num">￥{{ '%.2f' % total_paid }}</div>
+                <div class="label">累计消费</div>
+            </div>
+            <div class="pc-stat">
+                <div class="num">{{ counts.unpaid }}</div>
+                <div class="label">待支付</div>
+            </div>
+        </div>
+        <a class="pc-logout" href="{{ url_for('login.logout') }}">退出登录</a>
+    </div>
+
+    {# ========== B. 我的订单 ========== #}
+    <div class="pc-card">
+        <div class="pc-tabs">
+            <a class="pc-tab {% if active_status == 'all' %}active{% endif %}"
+               href="{{ url_for('login.me', status='all') }}">全部<span class="badge">{{ counts.all }}</span></a>
+            <a class="pc-tab {% if active_status == 'unpaid' %}active{% endif %}"
+               href="{{ url_for('login.me', status='unpaid') }}">未支付<span class="badge">{{ counts.unpaid }}</span></a>
+            <a class="pc-tab {% if active_status == 'paid' %}active{% endif %}"
+               href="{{ url_for('login.me', status='paid') }}">已支付 / 打印中<span class="badge">{{ counts.paid }}</span></a>
+            <a class="pc-tab {% if active_status == 'done' %}active{% endif %}"
+               href="{{ url_for('login.me', status='done') }}">已完成<span class="badge">{{ counts.done }}</span></a>
+            <a class="pc-tab {% if active_status == 'cancelled' %}active{% endif %}"
+               href="{{ url_for('login.me', status='cancelled') }}">已取消<span class="badge">{{ counts.cancelled }}</span></a>
+        </div>
+
+        {% if orders %}
+        <table class="pc-table">
+            <colgroup>
+                <col class="col-order">
+                <col class="col-params">
+                <col class="col-time">
+                <col class="col-place">
+                <col class="col-money">
+                <col class="col-status">
+                <col class="col-actions">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>订单号 / 文件</th>
+                    <th>参数</th>
+                    <th>下单时间</th>
+                    <th>打印点</th>
+                    <th>金额</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for o in orders %}
+                {% set color = '黑白' if o.Print_Colour == 'CMYGray' else '彩色' %}
+                {% if o.Print_way == 'one-sided' %}{% set way = '单面' %}
+                {% elif o.Print_way == 'two-sided-long-edge' %}{% set way = '双面长边' %}
+                {% else %}{% set way = '双面短边' %}{% endif %}
+                {% set is_pdf = o.File_Dir and o.File_Dir.lower().endswith('.pdf') %}
+                {% set is_img = o.File_Dir and (o.File_Dir.lower().endswith('.jpg') or o.File_Dir.lower().endswith('.jpeg') or o.File_Dir.lower().endswith('.png')) %}
+                <tr>
+                    <td>
+                        <div class="trade-no">{{ o.Trade_Number }}</div>
+                        <span class="file-name" title="{{ o.File_Name }}">{{ o.File_Name }}</span>
+                    </td>
+                    <td class="pc-params">
+                        <span>{{ o.Print_Copies }} 份</span>
+                        <span>{{ color }}</span>
+                        <span>{{ way }}</span>
+                        <span>{{ o.Print_size }}</span>
+                        {% if o.Print_pages %}<span>{{ o.Print_pages }} 页</span>{% endif %}
+                    </td>
+                    <td>{{ o.Born_Date.strftime('%Y-%m-%d %H:%M') if o.Born_Date else '-' }}</td>
+                    <td>{{ place_labels.get(o.Print_Place, o.Print_Place) }}</td>
+                    <td class="money">￥{{ '%.2f' % (o.Print_Money or 0) }}</td>
+                    <td>
+                        {% if o.Print_Status == 0 %}
+                            <span class="pc-status pc-status-unpaid">未支付</span>
+                        {% elif o.Print_Status == 1 %}
+                            <span class="pc-status pc-status-paid">已支付</span>
+                            <span class="pc-pickup">取件码 {{ o.Trade_Number }}</span>
+                        {% elif o.Print_Status == 2 %}
+                            <span class="pc-status pc-status-printing">正在打印</span>
+                            <span class="pc-pickup">取件码 {{ o.Trade_Number }}</span>
+                        {% elif o.Print_Status == 3 %}
+                            <span class="pc-status pc-status-done">已完成</span>
+                        {% elif o.Print_Status == -1 %}
+                            <span class="pc-status pc-status-failed">打印失败</span>
+                        {% elif o.Print_Status == -2 %}
+                            <span class="pc-status pc-status-cancelled">已取消</span>
+                        {% else %}
+                            <span class="pc-status pc-status-paid">状态 {{ o.Print_Status }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="pc-actions">
+                        {# 预览文件 #}
+                        {% if is_pdf %}
+                            <a class="pc-btn pc-btn-ghost" href="#"
+                               onclick="window.open('{{ url_for('admin.look_media', media='viewer.html') }}?file=/static/Upload_Files/{{ o.File_Dir }}','pdf','width=900,height=700'); return false;">预览</a>
+                        {% elif is_img %}
+                            <a class="pc-btn pc-btn-ghost" target="_blank"
+                               href="{{ url_for('admin.look_picture', picture=o.File_Dir) }}">预览</a>
+                        {% endif %}
+
+                        {# 未支付：继续支付 / 取消 #}
+                        {% if o.Print_Status == 0 %}
+                            <form class="inline-form"
+                                  action="{{ url_for('cloud_pay.ali_computerpay') }}"
+                                  method="post" target="_top">
+                                <input type="hidden" name="tradeid" value="{{ o.Trade_Number }}">
+                                <button type="submit" class="pc-btn pc-btn-primary">继续支付</button>
+                            </form>
+                            <form class="inline-form"
+                                  action="{{ url_for('login.cancel_order', trade_number=o.Trade_Number) }}"
+                                  method="post"
+                                  onsubmit="return confirm('确定要取消订单 {{ o.Trade_Number }} 吗？');">
+                                <button type="submit" class="pc-btn pc-btn-danger">取消</button>
+                            </form>
+                        {% endif %}
+
+                        {# 已完成：再次打印 #}
+                        {% if o.Print_Status == 3 %}
+                            <form class="inline-form"
+                                  action="{{ url_for('login.reprint_order', trade_number=o.Trade_Number) }}"
+                                  method="post">
+                                <button type="submit" class="pc-btn pc-btn-primary">再次打印</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <div class="pc-empty">
+                当前分类下还没有订单。<br>
+                <a href="{{ url_for('printer.select') }}">去上传文件打印 →</a>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

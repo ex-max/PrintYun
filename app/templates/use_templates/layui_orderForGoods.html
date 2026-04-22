@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <title>打印中心</title>
+    <link rel="stylesheet" type="text/css" href="../../static/layui/css/layui.css" media="all"/>
+    <style type="text/css">
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+            background: #f5f7fa;
+            color: #333;
+        }
+        .page-wrap {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1E9FFF 0%, #5FB878 100%);
+            padding: 32px 20px;
+        }
+        .page-shell {
+            max-width: 1240px;
+            margin: 0 auto;
+        }
+        .page-hero {
+            color: #fff;
+            padding: 8px 4px 24px;
+        }
+        .page-hero h1 {
+            margin: 0 0 10px;
+            font-size: 32px;
+            font-weight: 500;
+        }
+        .page-hero p {
+            margin: 0;
+            font-size: 14px;
+            opacity: .92;
+            max-width: 760px;
+            line-height: 1.8;
+        }
+        .content-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        .panel {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(31, 45, 61, .10);
+            overflow: hidden;
+        }
+        .panel-head {
+            padding: 20px 22px 14px;
+            border-bottom: 1px solid #eef2f7;
+        }
+        .panel-head h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2d3d;
+        }
+        .panel-head p {
+            margin: 8px 0 0;
+            color: #7a8599;
+            font-size: 13px;
+            line-height: 1.7;
+        }
+        .history-list {
+            padding: 10px 14px 18px;
+        }
+        .history-item {
+            display: block;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            background: #f8fbff;
+            border: 1px solid #e8f2ff;
+            color: #4a5568;
+            font-size: 13px;
+            line-height: 1.6;
+            transition: all .2s;
+            word-break: break-all;
+        }
+        a.history-item:hover {
+            color: #1E9FFF;
+            border-color: #bcdcff;
+            background: #eef7ff;
+        }
+        .history-empty {
+            padding: 24px 16px 28px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 13px;
+        }
+        .form-wrap {
+            padding: 24px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px 20px;
+        }
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .field-full {
+            grid-column: 1 / -1;
+        }
+        .field label {
+            font-size: 13px;
+            color: #607086;
+            font-weight: 600;
+        }
+        .field input[type="text"],
+        .field input[type="number"],
+        .field input[type="date"],
+        .field select {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px;
+            border: 1px solid #d9e2ec;
+            border-radius: 10px;
+            background: #fff;
+            color: #334155;
+            font-size: 14px;
+            transition: all .2s;
+        }
+        .field input:focus,
+        .field select:focus {
+            outline: none;
+            border-color: #1E9FFF;
+            box-shadow: 0 0 0 3px rgba(30, 159, 255, .12);
+        }
+        .file-input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px dashed #9ecfff;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #fafdff 0%, #f3f9ff 100%);
+            color: #1E9FFF;
+            font-size: 14px;
+        }
+        .file-input:hover {
+            border-color: #69b7ff;
+            background: #eef7ff;
+        }
+        .field small {
+            color: #f56c6c;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .tips-card {
+            margin-top: 22px;
+            padding: 18px 20px;
+            border-radius: 14px;
+            background: #f8fbff;
+            border: 1px solid #e7f1ff;
+            color: #5f6f82;
+        }
+        .tips-card strong {
+            display: block;
+            color: #1E9FFF;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .tips-card p {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        .submit-btn,
+        .reset-btn {
+            height: 46px;
+            padding: 0 28px;
+            border-radius: 999px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .submit-btn {
+            background: linear-gradient(90deg, #1E9FFF 0%, #5FB878 100%);
+            color: #fff;
+            box-shadow: 0 8px 18px rgba(30, 159, 255, .22);
+        }
+        .submit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 24px rgba(30, 159, 255, .28);
+        }
+        .reset-btn {
+            background: #fff;
+            color: #607086;
+            border: 1px solid #d9e2ec;
+        }
+        .reset-btn:hover {
+            color: #1E9FFF;
+            border-color: #9ecfff;
+            background: #f8fbff;
+        }
+        @media (max-width: 960px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 640px) {
+            .page-wrap {
+                padding: 20px 12px;
+            }
+            .page-hero h1 {
+                font-size: 26px;
+            }
+            .form-wrap {
+                padding: 18px 16px;
+            }
+            .actions {
+                flex-direction: column;
+            }
+            .submit-btn,
+            .reset-btn {
+                width: 100%;
+            }
+        }
+    </style>
+    <script>
+    var UserName = '{{ current_user.Tel_Number }}';
+    var time_now = '{{ now }}';
+    var error = '{{ error }}';
+
+    if (error === '1') {
+        alert('此文件不能被系统转换处理，请重试');
+    }
+    </script>
+</head>
+<body>
+<div class="page-wrap">
+    <div class="page-shell">
+        <div class="page-hero">
+            <h1>打印中心</h1>
+            <p>上传文档后可选择打印点、份数、单双面、纸张与色彩样式。页面风格已与当前项目统一，保持更清晰的操作节奏与信息层次。</p>
+        </div>
+
+        <div class="content-grid">
+            <div class="panel">
+                <div class="panel-head">
+                    <h3>最近打印记录</h3>
+                    <p>{% if current_user.Role == 'admin' %}管理员查看最近系统订单记录{% else %}这里展示你的最近上传记录，便于快速回看文件{% endif %}</p>
+                </div>
+                <div class="history-list">
+                    {% if current_user.Role == 'admin' %}
+                        {% if datas %}
+                            {% for i in datas %}
+                                {% if i.File_Dir[-3:] == 'pdf' %}
+                                    <a class="history-item" target="_blank" href="look/viewer.html?file=../../static/Upload_Files/{{ i.File_Dir }}">
+                                        {{ i.File_Name[:-4] }}{{ i.File_Dir[-4:] }}
+                                    </a>
+                                {% else %}
+                                    <a class="history-item" target="_blank" href="look_picture/{{ i.File_Dir }}">
+                                        {{ i.File_Name[:-4] }}{{ i.File_Dir[-4:] }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="history-empty">暂无历史记录</div>
+                        {% endif %}
+                    {% else %}
+                        {% if user_datas %}
+                            {% for i in user_datas %}
+                                <div class="history-item">{{ i.File_Name[:-4] }}{{ i.File_Dir[-4:] }}</div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="history-empty">你还没有上传过文件</div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-head">
+                    <h3>上传并配置打印参数</h3>
+                    <p>请完整填写打印配置，提交后系统会进入支付或排版流程。</p>
+                </div>
+                <div class="form-wrap">
+                    <form method="post" enctype="multipart/form-data" action="{{ url_for('printer.select') }}">
+                        {{ form.hidden_tag() }}
+
+                        <div class="form-grid">
+                            <div class="field field-full">
+                                <label>文件上传</label>
+                                {{ form.print_file(class="file-input") }}
+                                {% for message in form.print_file.errors %}
+                                    <small>{{ message }}</small>
+                                {% endfor %}
+                            </div>
+
+                            <div class="field">
+                                <label>打印点</label>
+                                {{ form.print_place() }}
+                                {% for message in form.print_place.errors %}
+                                    <small>{{ message }}</small>
+                                {% endfor %}
+                            </div>
+
+                            <div class="field">
+                                <label>打印需求</label>
+                                {{ form.print_demand() }}
+                                {% for message in form.print_demand.errors %}
+                                    <small>{{ message }}</small>
+                                {% endfor %}
+                            </div>
+
+                            <div class="field">
+                                <label>打印份数</label>
+                                {{ form.print_copies() }}
+                                {% for message in form.print_copies.errors %}
+                                    <small>{{ message }}</small>
+                                {% endfor %}
+                            </div>
+
+                            <div class="field">
+                                <label>排版方向</label>
+                                {{ form.print_type() }}
+                                {% for message in form.print_type.errors %}
+                                    <small>{{ message }}</small>
+                                {% endfor %}
+                            </div>
+
+                            <div class="field">
+                                <label>纸张大小</label>
+                                {{ form.print_size() }}
+                                {% for message in form.print_size.errors %}
+                                    <small>{{ message }}</small>
+                                {% endfor %}
+                            </div>
+
+                            <div class="field">
+                                <label>打印格式</label>
+                                {{ form.print_way() }}
+                                {% for message in form.print_way.errors %}
+                                    <small>{{ message }}</small>
+                                {% endfor %}
+                            </div>
+
+                            <div class="field field-full">
+                                <label>色彩样式</label>
+                                {{ form.print_color() }}
+                                {% for message in form.print_color.errors %}
+                                    <small>{{ message }}</small>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="tips-card">
+                            <strong>温馨提示</strong>
+                            <p>建议优先上传 PDF 文件以获得更稳定的页数识别效果。若上传 Office 文档，系统会先尝试转换再进入支付流程；如转换失败，可重新上传 PDF 版本。</p>
+                        </div>
+
+                        <div class="actions">
+                            {{ form.submit(class="submit-btn") }}
+                            <button type="reset" class="reset-btn">重置</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

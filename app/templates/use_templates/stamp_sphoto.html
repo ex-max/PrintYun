@@ -1,0 +1,134 @@
+{% extends "use_templates/_base_stamp.html" %}
+{% set active = 'sphoto' %}
+{% block title %}身份证照打印{% endblock %}
+
+{% block extra_style %}
+.idcard-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 10px;
+    padding: 32px 28px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
+.idcard-sides {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+.idcard-side {
+    text-align: center;
+    padding: 24px 18px;
+    border: 2px dashed #CE93D8;
+    border-radius: 10px;
+    background: #FAF4FC;
+}
+.idcard-side .card {
+    width: 180px;
+    height: 114px;
+    background: linear-gradient(135deg, #F3E5F5, #E1BEE7);
+    border-radius: 8px;
+    margin: 0 auto 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7B1FA2;
+    font-size: 15px;
+    font-weight: bold;
+    position: relative;
+}
+.idcard-side h3 { color: #6A1B9A; font-size: 16px; margin-bottom: 4px; }
+.idcard-side p { color: #888; font-size: 13px; }
+
+.feature-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 18px;
+    margin-top: 26px;
+}
+.feature-item {
+    padding: 18px;
+    background: #F3E5F5;
+    border-radius: 8px;
+    text-align: center;
+}
+.feature-item strong { display: block; color: #6A1B9A; font-size: 16px; margin-bottom: 4px; }
+.feature-item span { color: #888; font-size: 13px; }
+
+.notice {
+    max-width: 900px;
+    margin: 24px auto 0;
+    padding: 18px 24px;
+    background: #FFF3E0;
+    border-left: 4px solid #FF9800;
+    border-radius: 6px;
+    color: #E65100;
+    font-size: 14px;
+}
+
+.cta-section { text-align: center; margin-top: 40px; }
+.cta-section .btn-primary { margin: 0 6px; }
+
+@media (max-width: 600px) {
+    .idcard-sides { grid-template-columns: 1fr; }
+}
+{% endblock %}
+
+{% block body %}
+<section class="page-hero" style="background:linear-gradient(135deg,#AB47BC 0%,#1E9FFF 100%);">
+    <h1>身份证照打印</h1>
+    <p>身份证正反面一次搞定，高清彩色打印，办事必备</p>
+</section>
+
+<div class="container">
+    <h2 class="section-title">上传方式</h2>
+    <div class="idcard-wrap">
+        <div class="idcard-sides">
+            <div class="idcard-side">
+                <div class="card">身份证正面</div>
+                <h3>正面照片</h3>
+                <p>含照片、姓名、民族等信息一面</p>
+            </div>
+            <div class="idcard-side">
+                <div class="card">身份证反面</div>
+                <h3>反面照片</h3>
+                <p>含国徽、签发机关、有效期一面</p>
+            </div>
+        </div>
+
+        <div class="feature-list">
+            <div class="feature-item">
+                <strong>规格</strong>
+                <span>标准 85.6 × 54 mm</span>
+            </div>
+            <div class="feature-item">
+                <strong>格式</strong>
+                <span>JPG / JPEG / PNG</span>
+            </div>
+            <div class="feature-item">
+                <strong>价格</strong>
+                <span>彩色 1.0 元/张</span>
+            </div>
+            <div class="feature-item">
+                <strong>纸张</strong>
+                <span>A4 铜版纸</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="notice">
+        <strong>温馨提示：</strong>为保证您的信息安全，上传的身份证图片仅用于本次打印，订单打印完成后系统自动从队列中移除，敬请放心使用。
+    </div>
+
+    <div class="cta-section">
+        {% if current_user.is_authenticated %}
+            <a class="btn-primary" href="{{ url_for('printer.select') }}">立即上传身份证</a>
+            <a class="btn-outline" href="{{ url_for('sercvice_form') }}">咨询客服</a>
+        {% else %}
+            <a class="btn-primary" href="{{ url_for('login.back_login') }}">登录后上传</a>
+            <a class="btn-outline" href="{{ url_for('login.register') }}">免费注册</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "admin/_base_admin.html" %}
+{% block title %}用户管理{% endblock %}
+
+{% block extra_style %}
+.mono { font-family: Consolas, "Courier New", monospace; }
+.role-admin { color: #1E9FFF; font-weight: 500; }
+.role-guest { color: #666; }
+{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="card-head">
+        <h3>👥 用户列表 · 共 {{ pagination.total }} 人</h3>
+    </div>
+    <div class="card-body">
+        <form method="get" action="{{ url_for('admin.users') }}" style="display:flex;gap:10px;">
+            <input class="form-input" type="text" name="kw" value="{{ kw }}" placeholder="输入手机号搜索" style="flex:1;max-width:360px;">
+            <button class="btn btn-primary" type="submit">🔍 搜索</button>
+            {% if kw %}<a class="btn" href="{{ url_for('admin.users') }}">重置</a>{% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body pad-sm">
+        {% if users %}
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th style="width:60px">#</th>
+                    <th style="width:140px">手机号</th>
+                    <th style="width:110px">注册日期</th>
+                    <th style="width:90px">角色</th>
+                    <th style="width:90px">状态</th>
+                    <th style="width:80px">订单</th>
+                    <th style="width:100px">累计消费</th>
+                    <th style="width:320px">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                {% set s = stats.get(u.Id, (0, 0)) %}
+                <tr>
+                    <td>{{ u.Id }}</td>
+                    <td class="mono">{{ u.Tel_Number }}</td>
+                    <td>{{ u.Register_Date or '-' }}</td>
+                    <td>
+                        <span class="{% if u.Role == 'admin' %}role-admin{% else %}role-guest{% endif %}">
+                            {{ '管理员' if u.Role == 'admin' else '普通用户' }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if u.Is_Active %}
+                            <span class="badge badge-green">正常</span>
+                        {% else %}
+                            <span class="badge badge-red">已禁用</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s[0] }}</td>
+                    <td style="color:#FF5722">￥{{ '%.2f' % s[1] }}</td>
+                    <td>
+                        <a class="btn btn-sm" href="{{ url_for('admin.orders', tel=u.Tel_Number) }}">📋 订单</a>
+                        <form class="inline-form" method="post"
+                              action="{{ url_for('admin.toggle_user_active', uid=u.Id) }}"
+                              onsubmit="return confirm('确认切换此用户的启用状态？');">
+                            {% if u.Is_Active %}
+                                <button class="btn btn-sm btn-danger">禁用</button>
+                            {% else %}
+                                <button class="btn btn-sm btn-success">启用</button>
+                            {% endif %}
+                        </form>
+                        {% if u.Role != 'admin' %}
+                            <form class="inline-form" method="post"
+                                  action="{{ url_for('admin.change_user_role', uid=u.Id) }}"
+                                  onsubmit="return confirm('确认把 {{ u.Tel_Number }} 升级为管理员？');">
+                                <input type="hidden" name="role" value="admin">
+                                <button class="btn btn-sm btn-primary">⬆ 设为管理员</button>
+                            </form>
+                        {% else %}
+                            <form class="inline-form" method="post"
+                                  action="{{ url_for('admin.change_user_role', uid=u.Id) }}"
+                                  onsubmit="return confirm('确认把 {{ u.Tel_Number }} 降为普通用户？');">
+                                <input type="hidden" name="role" value="guest">
+                                <button class="btn btn-sm btn-warn">⬇ 降为普通</button>
+                            </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="pager">
+            <span>共 {{ pagination.total }} 人，第 {{ pagination.page }} / {{ pagination.pages }} 页</span>
+            {% if pagination.has_prev %}
+                <a href="{{ url_for('admin.users', page=pagination.prev_num, kw=kw) }}">‹ 上一页</a>
+            {% else %}
+                <span class="disabled">‹ 上一页</span>
+            {% endif %}
+            {% if pagination.has_next %}
+                <a href="{{ url_for('admin.users', page=pagination.next_num, kw=kw) }}">下一页 ›</a>
+            {% else %}
+                <span class="disabled">下一页 ›</span>
+            {% endif %}
+        </div>
+        {% else %}
+            <div class="empty">没有找到用户</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% extends "use_templates/_base_stamp.html" %}
+{% set active = 'user' %}
+{% block title %}用户指南{% endblock %}
+
+{% block extra_style %}
+.guide-wrap {
+    max-width: 960px;
+    margin: 0 auto;
+}
+.guide-intro {
+    background: #fff;
+    padding: 28px 32px;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    font-size: 15px;
+    color: #555;
+    line-height: 1.9;
+    margin-bottom: 32px;
+    border-left: 4px solid #1E9FFF;
+}
+
+.toc {
+    background: #E8F4FF;
+    padding: 20px 28px;
+    border-radius: 8px;
+    margin-bottom: 32px;
+}
+.toc h3 { color: #1E9FFF; margin-bottom: 10px; font-size: 16px; }
+.toc ol { padding-left: 22px; list-style: decimal; }
+.toc li { margin-bottom: 6px; }
+.toc li a { color: #0277BD; }
+.toc li a:hover { text-decoration: underline; }
+
+.guide-section {
+    background: #fff;
+    padding: 28px 32px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.04);
+}
+.guide-section h2 {
+    color: #1E9FFF;
+    font-size: 20px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #E8F4FF;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.guide-section h2::before {
+    content: "";
+    width: 6px;
+    height: 20px;
+    background: #1E9FFF;
+    border-radius: 3px;
+}
+.guide-section p { color: #555; font-size: 14px; line-height: 1.9; margin-bottom: 10px; }
+.guide-section ol, .guide-section ul { padding-left: 22px; margin-bottom: 12px; }
+.guide-section ol { list-style: decimal; }
+.guide-section ul { list-style: disc; }
+.guide-section li { font-size: 14px; color: #555; margin-bottom: 6px; line-height: 1.8; }
+.guide-section .kbd { background: #f0f3f7; color: #1E9FFF; padding: 2px 8px; border-radius: 4px; font-size: 13px; font-family: Consolas, monospace; }
+
+.faq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+    margin-top: 16px;
+}
+.faq-item {
+    background: #FAFBFC;
+    padding: 16px 18px;
+    border-radius: 6px;
+    border-left: 3px solid #5FB878;
+}
+.faq-item strong { display: block; color: #2e7d32; margin-bottom: 4px; font-size: 14px; }
+.faq-item span { color: #666; font-size: 13px; }
+{% endblock %}
+
+{% block body %}
+<section class="page-hero">
+    <h1>用户指南</h1>
+    <p>几步即可完成云打印，文件自动排队，支付后到店取件</p>
+</section>
+
+<div class="container">
+    <div class="guide-wrap">
+        <div class="guide-intro">
+            云打印是一款面向打印店（尤其是学校打印店）和个人用户的在线打印服务平台。用户在线上传文件、在线选择参数、在线支付，到店凭订单号取件，打印机会根据订单信息自动打印，解决排队拥堵和 U 盘传输繁琐的痛点。
+        </div>
+
+        <div class="toc">
+            <h3>阅读导航</h3>
+            <ol>
+                <li><a href="#step1">如何注册</a></li>
+                <li><a href="#step2">如何打印</a></li>
+                <li><a href="#step3">如何支付</a></li>
+                <li><a href="#step4">如何取件</a></li>
+                <li><a href="#step5">如何查询订单</a></li>
+                <li><a href="#step6">如何找回密码</a></li>
+                <li><a href="#step7">常见问题</a></li>
+            </ol>
+        </div>
+
+        <div class="guide-section" id="step1">
+            <h2>一、如何注册</h2>
+            <ol>
+                <li>点击右上角 <span class="kbd">注册</span> 按钮，进入注册页面；</li>
+                <li>输入 11 位手机号，点击 <span class="kbd">获取验证码</span>，等待短信到达；</li>
+                <li>输入短信验证码、设置密码（两次一致），提交即可完成注册；</li>
+                <li>注册成功后，系统会跳转到登录页面，使用手机号 + 密码登录即可。</li>
+            </ol>
+        </div>
+
+        <div class="guide-section" id="step2">
+            <h2>二、如何打印</h2>
+            <ol>
+                <li>登录后点击右上角 <span class="kbd">开始打印</span>，进入上传页面；</li>
+                <li>选择打印点（门店）、上传文件（支持 doc/docx/xls/xlsx/ppt/pptx/pdf/jpg/png）；</li>
+                <li>选择打印参数：黑白/彩色、单面/双面、横向/纵向、份数、打印日期；</li>
+                <li>点击提交，系统自动将 Office 文档转换为 PDF 并计算页数、单价；</li>
+                <li>确认无误后进入支付页面。</li>
+            </ol>
+        </div>
+
+        <div class="guide-section" id="step3">
+            <h2>三、如何支付</h2>
+            <ul>
+                <li>当前支持 <strong>微信支付</strong> 和 <strong>支付宝</strong>（通过 XorPay 聚合）；</li>
+                <li>提交订单后页面自动生成二维码，使用对应 App 扫码支付即可；</li>
+                <li>支付成功后系统自动更新订单状态为"已支付"，订单进入打印队列。</li>
+            </ul>
+        </div>
+
+        <div class="guide-section" id="step4">
+            <h2>四、如何取件</h2>
+            <ol>
+                <li>支付成功后，订单自动进入门店打印队列；</li>
+                <li>到门店后向店员报出订单号（<span class="kbd">日期-序号</span> 格式）；</li>
+                <li>核对订单信息无误后，打印机将自动开始打印。</li>
+            </ol>
+        </div>
+
+        <div class="guide-section" id="step5">
+            <h2>五、如何查询订单</h2>
+            <ul>
+                <li>登录后进入 <span class="kbd">订单查询</span> 页面；</li>
+                <li>可按手机号 + 日期组合查询；</li>
+                <li>订单状态分为：未支付 / 已支付 / 正在打印 / 打印完成。</li>
+            </ul>
+        </div>
+
+        <div class="guide-section" id="step6">
+            <h2>六、如何找回密码</h2>
+            <ol>
+                <li>在登录页点击 <span class="kbd">忘记密码</span>；</li>
+                <li>输入注册时的手机号，获取短信验证码；</li>
+                <li>输入验证码和新密码，提交即可重置密码；</li>
+                <li>如遗忘手机号或无法接收验证码，可拨打客服电话 <strong>535027650</strong> 进行人工找回。</li>
+            </ol>
+        </div>
+
+        <div class="guide-section" id="step7">
+            <h2>七、常见问题</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <strong>Q：支持哪些文件格式？</strong>
+                    <span>doc/docx/xls/xlsx/ppt/pptx/pdf/jpg/jpeg/png，其他格式请先转换。</span>
+                </div>
+                <div class="faq-item">
+                    <strong>Q：文件上传后多久能打印？</strong>
+                    <span>支付完成后订单自动入队，一般 1-3 分钟可完成打印。</span>
+                </div>
+                <div class="faq-item">
+                    <strong>Q：订单错了怎么办？</strong>
+                    <span>未支付订单可直接在"我的订单"删除；已支付订单请联系客服处理。</span>
+                </div>
+                <div class="faq-item">
+                    <strong>Q：如何打印彩色？</strong>
+                    <span>在参数选择页将颜色改为"彩色"，单价：单面 1.0 元/页、双面 1.7 元/页。黑白单面 0.3、双面 0.5 元/页。</span>
+                </div>
+                <div class="faq-item">
+                    <strong>Q：文件会被保存多久？</strong>
+                    <span>打印完成后会从打印队列移除；长期不访问的文件系统会定期清理。</span>
+                </div>
+                <div class="faq-item">
+                    <strong>Q：遇到打印异常如何处理？</strong>
+                    <span>卡纸、断电等导致异常，请拨打客服 535027650 或在公众号反馈。</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

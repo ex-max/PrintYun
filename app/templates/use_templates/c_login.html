@@ -1,0 +1,165 @@
+{% extends "use_templates/_base_stamp.html" %}
+{% block title %}用户登录{% endblock %}
+
+{% block extra_style %}
+.auth-wrap {
+    min-height: calc(100vh - 64px - 200px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+    background: linear-gradient(135deg, #1E9FFF 0%, #5FB878 100%);
+}
+.auth-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.15);
+    padding: 40px 36px 32px;
+}
+.auth-card h2 {
+    text-align: center;
+    color: #333;
+    font-size: 24px;
+    font-weight: 500;
+    margin-bottom: 28px;
+}
+.auth-card h2 small { color: #999; font-size: 13px; font-weight: normal; margin-left: 6px; }
+
+.auth-form .field { margin-bottom: 16px; }
+.auth-form label {
+    display: block;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 6px;
+}
+.auth-form input[type="text"],
+.auth-form input[type="password"],
+.auth-form input[type="tel"],
+.auth-form input[type="number"] {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all .2s;
+    background: #fff;
+}
+.auth-form input:focus {
+    outline: none;
+    border-color: #1E9FFF;
+    box-shadow: 0 0 0 3px rgba(30,159,255,.12);
+}
+
+.auth-form .row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    margin: 12px 0 20px;
+    color: #666;
+}
+.auth-form .row input[type="checkbox"] { margin-right: 4px; vertical-align: middle; }
+.auth-form .row a { color: #1E9FFF; }
+.auth-form .row a:hover { text-decoration: underline; }
+
+.auth-submit {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(90deg, #1E9FFF 0%, #5FB878 100%);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+    letter-spacing: 2px;
+}
+.auth-submit:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(30,159,255,.3); }
+
+.auth-foot {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 13px;
+    color: #888;
+}
+.auth-foot a { color: #1E9FFF; font-weight: 500; }
+.auth-foot a:hover { text-decoration: underline; }
+
+.auth-flash {
+    background: #E8F4FF;
+    color: #1E9FFF;
+    border-left: 3px solid #1E9FFF;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+.auth-error {
+    background: #FFECEC;
+    color: #F53F3F;
+    border-left: 3px solid #F53F3F;
+    padding: 10px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+.field-errors { color: #F53F3F; font-size: 12px; margin-top: 4px; }
+{% endblock %}
+
+{# 抑制 base 的默认 flash 输出，由卡片内部的 .auth-flash 统一处理 #}
+{% block flash %}{% endblock %}
+
+{% block body %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h2>用户登录 <small>Welcome back</small></h2>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for m in messages %}
+                    {% set shown = '您已安全退出' if m == 'logout success' else m %}
+                    <div class="auth-flash">{{ shown }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if error_msg %}
+            <div class="auth-error">{{ error_msg }}</div>
+        {% endif %}
+
+        <form class="auth-form" method="post" action="{{ url_for('login.back_login') }}">
+            {{ form.hidden_tag() }}
+
+            <div class="field">
+                <label>手机号</label>
+                {{ form.tel(placeholder="请输入手机号", autocomplete="username") }}
+                {% if form.tel.errors %}
+                    <div class="field-errors">{{ form.tel.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label>密码</label>
+                {{ form.password(placeholder="请输入密码", autocomplete="current-password") }}
+                {% if form.password.errors %}
+                    <div class="field-errors">{{ form.password.errors[0] }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <label>{{ form.remember() }} 记住我</label>
+                <a href="{{ url_for('login.findpassword') }}">忘记密码？</a>
+            </div>
+
+            <button type="submit" class="auth-submit">登 录</button>
+        </form>
+
+        <div class="auth-foot">
+            还没有账号？<a href="{{ url_for('login.register') }}">立即注册 →</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

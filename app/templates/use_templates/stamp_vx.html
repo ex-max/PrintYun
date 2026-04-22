@@ -1,0 +1,136 @@
+{% extends "use_templates/_base_stamp.html" %}
+{% set active = 'vx' %}
+{% block title %}穿越到微信{% endblock %}
+
+{% block extra_style %}
+.vx-banner {
+    background: linear-gradient(135deg, #07C160 0%, #1E9FFF 100%);
+}
+.vx-main {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    align-items: center;
+}
+.vx-qr {
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+}
+.vx-qr-img {
+    width: 220px;
+    height: 220px;
+    background: #E8F5E9;
+    border: 2px dashed #66BB6A;
+    border-radius: 8px;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #2e7d32;
+    font-weight: bold;
+    font-size: 16px;
+    position: relative;
+}
+.vx-qr-img::before {
+    content: "微信二维码";
+    position: absolute;
+}
+.vx-qr h3 { color: #333; font-size: 17px; margin-bottom: 4px; }
+.vx-qr p { color: #888; font-size: 13px; }
+
+.vx-info h2 { color: #07C160; font-size: 24px; margin-bottom: 16px; }
+.vx-info p { color: #555; font-size: 15px; margin-bottom: 12px; line-height: 1.8; }
+.vx-info .highlight { color: #07C160; font-weight: bold; }
+
+.vx-steps {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+.vx-step {
+    background: #fff;
+    border-radius: 10px;
+    padding: 24px 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
+.vx-step .num {
+    width: 40px;
+    height: 40px;
+    background: #07C160;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 14px;
+    font-weight: bold;
+    font-size: 16px;
+}
+.vx-step h3 { font-size: 15px; margin-bottom: 6px; color: #333; }
+.vx-step p { font-size: 13px; color: #888; }
+
+@media (max-width: 768px) {
+    .vx-main { grid-template-columns: 1fr; }
+    .vx-info { text-align: center; }
+}
+{% endblock %}
+
+{% block body %}
+<section class="page-hero vx-banner">
+    <h1>穿越到微信</h1>
+    <p>关注公众号，随手拍、随时传，文件从微信直接送到打印机</p>
+</section>
+
+<div class="container">
+    <div class="vx-main">
+        <div class="vx-qr">
+            <div class="vx-qr-img"></div>
+            <h3>云打印公众号</h3>
+            <p>微信扫码关注 · 在公众号内直接下单</p>
+        </div>
+        <div class="vx-info">
+            <h2>微信打印，省时省力</h2>
+            <p>
+                无需打开电脑，<span class="highlight">在微信里直接上传文件、下单支付</span>，到店扫码即可取件。
+            </p>
+            <p>
+                支持 <span class="highlight">文档、照片、证件照</span>等多种类型，自动适配尺寸与颜色参数。
+            </p>
+            <p>
+                打印状态实时推送，订单进度尽在掌握。
+            </p>
+        </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:60px;">使用流程</h2>
+    <div class="vx-steps">
+        <div class="vx-step">
+            <div class="num">1</div>
+            <h3>扫码关注</h3>
+            <p>微信扫描上方二维码，关注公众号</p>
+        </div>
+        <div class="vx-step">
+            <div class="num">2</div>
+            <h3>绑定手机号</h3>
+            <p>在公众号内绑定已注册的手机号</p>
+        </div>
+        <div class="vx-step">
+            <div class="num">3</div>
+            <h3>上传文件</h3>
+            <p>通过菜单选择打印类型并上传文件</p>
+        </div>
+        <div class="vx-step">
+            <div class="num">4</div>
+            <h3>微信支付</h3>
+            <p>确认订单，微信支付一键完成</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

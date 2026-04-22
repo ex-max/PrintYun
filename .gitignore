@@ -1,0 +1,22 @@
+# 敏感配置
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# venv
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+
+# 系统 / 遗留
+cookies.txt
+*.log

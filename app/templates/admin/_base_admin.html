@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}管理后台{% endblock %} - 云打印</title>
+<link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='img/logo/szwx_login.png') }}">
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body { font-family: "Microsoft YaHei","Helvetica Neue",Arial,sans-serif; color: #333; background: #f5f7fa; line-height: 1.6; font-size: 14px; }
+    a { text-decoration: none; color: inherit; }
+    ul, ol { list-style: none; }
+    img { max-width: 100%; display: block; }
+    input, select, button, textarea { font-family: inherit; font-size: 14px; }
+    button { cursor: pointer; }
+
+    /* 布局：左侧导航 + 右侧主内容 */
+    .admin-layout { display: flex; min-height: 100vh; }
+    .admin-side {
+        width: 220px;
+        background: #fff;
+        border-right: 1px solid #eaecef;
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 0; bottom: 0; left: 0;
+        z-index: 10;
+    }
+    .admin-side .brand {
+        padding: 20px 24px;
+        border-bottom: 1px solid #f0f2f5;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #1E9FFF;
+        font-weight: 600;
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+    .admin-side .brand img { height: 28px; width: auto; display: inline-block; }
+    .admin-side nav { flex: 1; padding: 12px 0; overflow-y: auto; }
+    .admin-side nav a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 24px;
+        color: #444;
+        border-left: 3px solid transparent;
+        font-size: 14px;
+        transition: all .15s;
+    }
+    .admin-side nav a:hover { background: #f5faff; color: #1E9FFF; }
+    .admin-side nav a.active {
+        background: #E8F4FF;
+        color: #1E9FFF;
+        border-left-color: #1E9FFF;
+        font-weight: 500;
+    }
+    .admin-side nav .group {
+        padding: 12px 24px 4px;
+        font-size: 12px;
+        color: #999;
+        letter-spacing: 1px;
+    }
+    .admin-side .foot {
+        padding: 14px 24px;
+        border-top: 1px solid #f0f2f5;
+        font-size: 12px;
+        color: #888;
+    }
+    .admin-side .foot a { color: #F53F3F; }
+    .admin-side .foot a:hover { text-decoration: underline; }
+
+    .admin-main {
+        flex: 1;
+        margin-left: 220px;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+    .admin-top {
+        height: 54px;
+        background: #fff;
+        border-bottom: 1px solid #eaecef;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+    .admin-top .crumb { color: #666; font-size: 14px; }
+    .admin-top .crumb .sep { color: #ccc; margin: 0 8px; }
+    .admin-top .crumb strong { color: #333; font-weight: 500; }
+    .admin-top .user-info { color: #666; font-size: 13px; }
+    .admin-top .user-info a {
+        margin-left: 10px;
+        color: #1E9FFF;
+    }
+    .admin-top .user-info a:hover { text-decoration: underline; }
+
+    .admin-body {
+        flex: 1;
+        padding: 24px;
+        min-width: 0;
+    }
+
+    /* flash */
+    .flash-stack { margin-bottom: 14px; }
+    .flash-msg {
+        padding: 10px 14px;
+        border-radius: 4px;
+        font-size: 13px;
+        margin-bottom: 8px;
+        background: #E8F4FF;
+        color: #1E9FFF;
+        border-left: 3px solid #1E9FFF;
+    }
+    .flash-msg.success { background: #F0F9EB; color: #52C41A; border-left-color: #52C41A; }
+    .flash-msg.warning { background: #FFF8E5; color: #FA8C16; border-left-color: #FA8C16; }
+    .flash-msg.error   { background: #FFECEC; color: #F53F3F; border-left-color: #F53F3F; }
+
+    /* 通用卡片 */
+    .card {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.04);
+        margin-bottom: 16px;
+    }
+    .card-head {
+        padding: 14px 20px;
+        border-bottom: 1px solid #f0f2f5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .card-head h3 { font-size: 15px; font-weight: 500; color: #333; }
+    .card-head .tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .card-body { padding: 18px 20px; }
+    .card-body.pad-sm { padding: 10px 20px; }
+
+    /* 通用按钮 */
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 6px 14px;
+        border-radius: 4px;
+        font-size: 13px;
+        border: 1px solid #d9d9d9;
+        background: #fff;
+        color: #555;
+        line-height: 1.4;
+        transition: all .15s;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .btn:hover { border-color: #1E9FFF; color: #1E9FFF; }
+    .btn-primary { background: #1E9FFF; color: #fff; border-color: #1E9FFF; }
+    .btn-primary:hover { background: #1890ff; color: #fff; border-color: #1890ff; }
+    .btn-success { background: #52C41A; color: #fff; border-color: #52C41A; }
+    .btn-success:hover { background: #49B216; color: #fff; border-color: #49B216; }
+    .btn-warn { background: #FA8C16; color: #fff; border-color: #FA8C16; }
+    .btn-warn:hover { background: #E67E0C; color: #fff; border-color: #E67E0C; }
+    .btn-danger { background: #fff; color: #F53F3F; border-color: #ffd0d0; }
+    .btn-danger:hover { background: #F53F3F; color: #fff; border-color: #F53F3F; }
+    .btn-sm { padding: 3px 10px; font-size: 12px; }
+
+    /* 通用表单控件 */
+    .form-input, .form-select {
+        padding: 6px 10px;
+        border: 1px solid #d9d9d9;
+        border-radius: 4px;
+        font-size: 13px;
+        outline: none;
+        transition: all .15s;
+        background: #fff;
+        min-width: 140px;
+    }
+    .form-input:focus, .form-select:focus {
+        border-color: #1E9FFF;
+        box-shadow: 0 0 0 2px rgba(30,159,255,.15);
+    }
+
+    /* 通用表格 */
+    table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.tbl th, table.tbl td {
+        padding: 11px 12px;
+        text-align: left;
+        border-bottom: 1px solid #f0f2f5;
+        vertical-align: middle;
+    }
+    table.tbl th {
+        background: #fafbfc;
+        color: #666;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    table.tbl tr:hover td { background: #f9fcff; }
+
+    /* 状态徽章 */
+    .badge {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 10px;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+    .badge-blue { background: #E8F4FF; color: #1E9FFF; }
+    .badge-orange { background: #FFF5E5; color: #FF9800; }
+    .badge-green { background: #F0F9EB; color: #52C41A; }
+    .badge-red { background: #FFECEC; color: #F53F3F; }
+    .badge-purple { background: #FFF0F6; color: #C060C0; }
+    .badge-gray { background: #F0F0F0; color: #888; }
+
+    /* 空态 */
+    .empty {
+        padding: 60px 20px;
+        text-align: center;
+        color: #bbb;
+        font-size: 13px;
+    }
+
+    /* 分页 */
+    .pager {
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .pager a, .pager span {
+        display: inline-block;
+        padding: 4px 10px;
+        border: 1px solid #eaecef;
+        border-radius: 4px;
+        font-size: 12px;
+        color: #555;
+    }
+    .pager a:hover { border-color: #1E9FFF; color: #1E9FFF; }
+    .pager .current { background: #1E9FFF; color: #fff; border-color: #1E9FFF; }
+    .pager .disabled { color: #ccc; }
+
+    /* 指标数字 */
+    .metric-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+    }
+    .metric {
+        background: #fff;
+        border-radius: 8px;
+        padding: 18px 20px;
+        box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    }
+    .metric .label { color: #999; font-size: 12px; margin-bottom: 6px; }
+    .metric .value { color: #1E9FFF; font-size: 26px; font-weight: 500; }
+    .metric .value.orange { color: #FA8C16; }
+    .metric .value.green  { color: #52C41A; }
+    .metric .value.purple { color: #C060C0; }
+    .metric .sub { color: #888; font-size: 12px; margin-top: 4px; }
+
+    /* inline form */
+    .inline-form { display: inline; }
+
+    @media (max-width: 768px) {
+        .admin-side { transform: translateX(-100%); transition: transform .2s; }
+        .admin-side.open { transform: translateX(0); }
+        .admin-main { margin-left: 0; }
+    }
+
+    {% block extra_style %}{% endblock %}
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<div class="admin-layout">
+    <aside class="admin-side">
+        <div class="brand">
+            <img src="{{ url_for('static', filename='img/logo/szwx_login.png') }}" alt="logo">
+            <span>云打印管理</span>
+        </div>
+        <nav>
+            <div class="group">数据</div>
+            <a href="{{ url_for('admin.dashboard') }}"
+               class="{% if active == 'dashboard' %}active{% endif %}">📊 仪表盘</a>
+
+            <div class="group">运营</div>
+            <a href="{{ url_for('admin.queue') }}"
+               class="{% if active == 'queue' %}active{% endif %}">🖨️ 打印队列</a>
+            <a href="{{ url_for('admin.orders') }}"
+               class="{% if active == 'orders' %}active{% endif %}">📋 订单中心</a>
+            <a href="{{ url_for('admin.users') }}"
+               class="{% if active == 'users' %}active{% endif %}">👥 用户管理</a>
+
+            <div class="group">系统</div>
+            <a href="{{ url_for('admin.print_places') }}"
+               class="{% if active == 'places' %}active{% endif %}">📍 打印点</a>
+            <a href="{{ url_for('platform_home') }}" target="_blank">↗ 前台首页</a>
+        </nav>
+        <div class="foot">
+            <div>{{ current_user.Tel_Number }} · 管理员</div>
+            <div style="margin-top:6px;"><a href="{{ url_for('login.logout') }}">退出登录</a></div>
+        </div>
+    </aside>
+
+    <section class="admin-main">
+        <header class="admin-top">
+            <div class="crumb">
+                {% block breadcrumb %}
+                <strong>{{ self.title() }}</strong>
+                {% endblock %}
+            </div>
+            <div class="user-info">
+                你好，{{ current_user.Tel_Number }}
+                <a href="{{ url_for('login.me') }}" target="_blank">个人中心</a>
+            </div>
+        </header>
+
+        <div class="admin-body">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-stack">
+                        {% for category, m in messages %}
+                            <div class="flash-msg {{ category if category in ['success','warning','error'] else '' }}">{{ m }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block body %}{% endblock %}
+        </div>
+    </section>
+</div>
+
+{% block extra_script %}{% endblock %}
+</body>
+</html>

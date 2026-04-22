@@ -1,0 +1,63 @@
+{% extends "admin/_base_admin.html" %}
+{% block title %}打印点管理{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="card-head"><h3>➕ 新增打印点</h3></div>
+    <div class="card-body">
+        <form method="post" action="{{ url_for('admin.add_place') }}" style="display:grid;grid-template-columns:160px 1fr 1fr 120px 110px;gap:10px;align-items:end;">
+            <div><div style="font-size:12px;color:#666;margin-bottom:6px;">Key</div><input class="form-input" name="key" placeholder="如 library_1f"></div>
+            <div><div style="font-size:12px;color:#666;margin-bottom:6px;">展示名</div><input class="form-input" name="name" placeholder="如 图书馆一楼打印站"></div>
+            <div><div style="font-size:12px;color:#666;margin-bottom:6px;">地址说明</div><input class="form-input" name="address" placeholder="可选"></div>
+            <div><div style="font-size:12px;color:#666;margin-bottom:6px;">排序</div><input class="form-input" name="sort" value="0"></div>
+            <button class="btn btn-primary" type="submit">新增</button>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head"><h3>📍 打印点列表</h3></div>
+    <div class="card-body pad-sm">
+        {% if places %}
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th style="width:150px">Key</th>
+                    <th style="width:180px">展示名</th>
+                    <th>地址说明</th>
+                    <th style="width:80px">排序</th>
+                    <th style="width:80px">状态</th>
+                    <th style="width:320px">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in places %}
+                <tr>
+                    <td style="font-family:Consolas,monospace;">{{ p.Key }}</td>
+                    <td>{{ p.Name }}</td>
+                    <td>{{ p.Address or '-' }}</td>
+                    <td>{{ p.Sort }}</td>
+                    <td>
+                        <span class="badge badge-{{ 'green' if p.Is_Active else 'gray' }}">{{ '启用' if p.Is_Active else '停用' }}</span>
+                    </td>
+                    <td>
+                        <form class="inline-form" method="post" action="{{ url_for('admin.update_place', pid=p.Id) }}">
+                            <input class="form-input" name="name" value="{{ p.Name }}" style="min-width:120px;width:120px;">
+                            <input class="form-input" name="address" value="{{ p.Address }}" style="min-width:140px;width:140px;">
+                            <input class="form-input" name="sort" value="{{ p.Sort }}" style="min-width:60px;width:60px;">
+                            <button class="btn btn-sm">保存</button>
+                        </form>
+                        <form class="inline-form" method="post" action="{{ url_for('admin.toggle_place', pid=p.Id) }}">
+                            <button class="btn btn-sm {{ 'btn-warn' if p.Is_Active else 'btn-success' }}">{{ '停用' if p.Is_Active else '启用' }}</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty">暂无打印点</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

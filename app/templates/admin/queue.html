@@ -1,0 +1,116 @@
+{% extends "admin/_base_admin.html" %}
+{% block title %}打印队列{% endblock %}
+
+{% block extra_style %}
+.queue-banner {
+    background: linear-gradient(90deg, #E8F4FF 0%, #F0F9EB 100%);
+    border-left: 4px solid #1E9FFF;
+    padding: 14px 18px;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    color: #555;
+}
+.queue-banner strong { color: #1E9FFF; }
+.mono { font-family: Consolas, "Courier New", monospace; }
+.file-link { color: #1E9FFF; }
+.file-link:hover { text-decoration: underline; }
+.params { color: #666; font-size: 12px; }
+.params span {
+    display: inline-block;
+    padding: 2px 8px;
+    margin: 1px 3px 1px 0;
+    background: #f5f7fa;
+    border-radius: 3px;
+}
+{% endblock %}
+
+{% block body %}
+<div class="queue-banner">
+    📋 当前队列共 <strong>{{ orders|length }}</strong> 单待打印。建议：按下单时间顺序打印，打印完立刻点「已完成」，出错则点「打印失败」便于后续退款/重印。
+</div>
+
+<div class="card">
+    <div class="card-head">
+        <h3>🖨️ 待打印订单（按下单时间升序）</h3>
+        <div class="tools">
+            <a class="btn" href="{{ url_for('admin.queue') }}">🔄 刷新</a>
+        </div>
+    </div>
+    <div class="card-body pad-sm">
+        {% if orders %}
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th style="width:140px">订单号</th>
+                    <th>文件 / 参数</th>
+                    <th style="width:120px">下单时间</th>
+                    <th style="width:120px">下单人</th>
+                    <th style="width:100px">打印点</th>
+                    <th style="width:80px">金额</th>
+                    <th style="width:90px">状态</th>
+                    <th style="width:240px">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in orders %}
+                {% set color = '黑白' if o.Print_Colour == 'CMYGray' else '彩色' %}
+                {% set way = '单面' if o.Print_way == 'one-sided' else ('双面长边' if o.Print_way == 'two-sided-long-edge' else '双面短边') %}
+                {% set is_pdf = o.File_Dir and o.File_Dir.lower().endswith('.pdf') %}
+                {% set is_img = o.File_Dir and (o.File_Dir.lower().endswith('.jpg') or o.File_Dir.lower().endswith('.jpeg') or o.File_Dir.lower().endswith('.png')) %}
+                <tr>
+                    <td class="mono"><strong>{{ o.Trade_Number }}</strong></td>
+                    <td>
+                        {% if is_pdf %}
+                            <a class="file-link" href="#"
+                               onclick="window.open('{{ url_for('admin.look_media', media='viewer.html') }}?file=/static/Upload_Files/{{ o.File_Dir }}','pdf','width=900,height=700'); return false;">
+                                📄 {{ o.File_Name }}
+                            </a>
+                        {% elif is_img %}
+                            <a class="file-link" target="_blank"
+                               href="{{ url_for('admin.look_picture', picture=o.File_Dir) }}">🖼️ {{ o.File_Name }}</a>
+                        {% else %}
+                            <span>{{ o.File_Name }}</span>
+                        {% endif %}
+                        <div class="params" style="margin-top:4px;">
+                            <span>{{ o.Print_Copies }} 份</span>
+                            <span>{{ color }}</span>
+                            <span>{{ way }}</span>
+                            <span>{{ o.Print_size }}</span>
+                            {% if o.Print_pages %}<span>{{ o.Print_pages }} 页</span>{% endif %}
+                        </div>
+                    </td>
+                    <td>{{ o.Born_Date.strftime('%m-%d %H:%M') if o.Born_Date else '-' }}</td>
+                    <td class="mono">{{ user_map.get(o.User_Id, '-') }}</td>
+                    <td>{{ place_labels.get(o.Print_Place, o.Print_Place) }}</td>
+                    <td style="color:#FF5722">￥{{ '%.2f' % (o.Print_Money or 0) }}</td>
+                    <td>
+                        <span class="badge badge-{{ status_badges.get(o.Print_Status, 'gray') }}">
+                            {{ status_labels.get(o.Print_Status, o.Print_Status) }}
+                        </span>
+                    </td>
+                    <td>
+                        <form class="inline-form" method="post"
+                              action="{{ url_for('admin.change_order_status', trade_number=o.Trade_Number) }}">
+                            <input type="hidden" name="next" value="{{ url_for('admin.queue') }}">
+                            <input type="hidden" name="status" value="3">
+                            <button class="btn btn-sm btn-success">✓ 完成</button>
+                        </form>
+                        <form class="inline-form" method="post"
+                              action="{{ url_for('admin.change_order_status', trade_number=o.Trade_Number) }}"
+                              onsubmit="return confirm('确认将此单标记为打印失败？后续需要手动退款或重印。');">
+                            <input type="hidden" name="next" value="{{ url_for('admin.queue') }}">
+                            <input type="hidden" name="status" value="-1">
+                            <button class="btn btn-sm btn-danger">✗ 失败</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <div class="empty">🎉 队列为空，所有已支付订单都处理完了</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "use_templates/_base_stamp.html" %}
+{% set active = 'index' %}
+{% block title %}云打印平台{% endblock %}
+
+{% block extra_style %}
+.banner {
+    background: linear-gradient(135deg, #1E9FFF 0%, #5FB878 100%);
+    color: #fff;
+    padding: 90px 40px;
+    text-align: center;
+}
+.banner h1 { font-size: 42px; margin-bottom: 16px; font-weight: 300; }
+.banner p { font-size: 18px; opacity: .9; margin-bottom: 32px; }
+.banner .cta {
+    display: inline-block;
+    padding: 14px 40px;
+    background: #fff;
+    color: #1E9FFF;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: bold;
+    transition: transform .2s;
+}
+.banner .cta:hover { transform: translateY(-2px); }
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+}
+.card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 32px 24px;
+    text-align: center;
+    box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    transition: all .3s;
+    cursor: pointer;
+}
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(30,159,255,.15);
+}
+.card-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #E8F4FF;
+    color: #1E9FFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 28px;
+    font-weight: bold;
+}
+.card.green .card-icon { background: #E8F6EE; color: #5FB878; }
+.card.orange .card-icon { background: #FFF3E0; color: #FF9800; }
+.card.purple .card-icon { background: #F3E5F5; color: #AB47BC; }
+.card.red .card-icon { background: #FFEBEE; color: #E53935; }
+.card.teal .card-icon { background: #E0F2F1; color: #009688; }
+.card-title { font-size: 18px; margin-bottom: 8px; color: #333; }
+.card-desc { font-size: 13px; color: #999; line-height: 1.6; }
+
+@media (max-width: 640px) {
+    .banner { padding: 60px 20px; }
+    .banner h1 { font-size: 30px; }
+    .banner p { font-size: 14px; }
+    .cards { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card { padding: 20px 12px; }
+    .card-icon { width: 48px; height: 48px; font-size: 20px; }
+    .card-title { font-size: 15px; }
+    .card-desc { display: none; }
+}
+{% endblock %}
+
+{% block body %}
+<section class="banner">
+    <h1>云打印 · 随时随地</h1>
+    <p>上传文档，在线下单，支付完成自动打印 · 简单 · 快速 · 便捷</p>
+    {% if current_user.is_authenticated %}
+        <a class="cta" href="{{ url_for('printer.select') }}">立即下单</a>
+    {% else %}
+        <a class="cta" href="{{ url_for('login.back_login') }}">立即体验</a>
+    {% endif %}
+</section>
+
+<div class="container">
+    <h2 class="section-title">全部服务</h2>
+    <div class="cards">
+        <a class="card" href="{{ url_for('text_form') }}">
+            <div class="card-icon">印</div>
+            <div class="card-title">文档打印</div>
+            <div class="card-desc">PDF / Word / Excel / PPT 都能打，支持黑白彩印、单双面</div>
+        </a>
+        <a class="card green" href="{{ url_for('zphoto_form') }}">
+            <div class="card-icon">证</div>
+            <div class="card-title">证件照</div>
+            <div class="card-desc">各类证件照规格齐全，高清打印</div>
+        </a>
+        <a class="card orange" href="{{ url_for('pphoto_form') }}">
+            <div class="card-icon">像</div>
+            <div class="card-title">普通照片</div>
+            <div class="card-desc">生活照 / 旅游照，多种尺寸可选</div>
+        </a>
+        <a class="card purple" href="{{ url_for('sphoto_form') }}">
+            <div class="card-icon">份</div>
+            <div class="card-title">身份证照</div>
+            <div class="card-desc">身份证正反面一次搞定</div>
+        </a>
+        <a class="card red" href="{{ url_for('vx_form') }}">
+            <div class="card-icon">微</div>
+            <div class="card-title">微信打印</div>
+            <div class="card-desc">从微信直接上传文件</div>
+        </a>
+        <a class="card teal" href="{{ url_for('todi_format') }}">
+            <div class="card-icon">惠</div>
+            <div class="card-title">优惠专区</div>
+            <div class="card-desc">查看最新活动和优惠券</div>
+        </a>
+        {% if current_user.is_authenticated and current_user.Role == 'admin' %}
+        <a class="card" href="{{ url_for('admin.inded_query') }}">
+            <div class="card-icon">单</div>
+            <div class="card-title">订单管理</div>
+            <div class="card-desc">查询全部用户订单和打印状态</div>
+        </a>
+        {% endif %}
+        <a class="card orange" href="{{ url_for('sercvice_form') }}">
+            <div class="card-icon">务</div>
+            <div class="card-title">联系客服</div>
+            <div class="card-desc">有问题？随时联系我们</div>
+        </a>
+    </div>
+</div>
+{% endblock %}

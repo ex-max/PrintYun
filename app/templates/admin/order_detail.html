@@ -1,0 +1,64 @@
+{% extends "admin/_base_admin.html" %}
+{% block title %}订单详情{% endblock %}
+
+{% block body %}
+<div class="card">
+    <div class="card-head">
+        <h3>🧾 订单 {{ order.Trade_Number }}</h3>
+        <div class="tools">
+            <a class="btn" href="{{ url_for('admin.orders') }}">返回订单中心</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;font-size:13px;color:#555;">
+            <div><strong>手机号：</strong>{{ user_map.get(order.User_Id, '-') }}</div>
+            <div><strong>打印点：</strong>{{ place_labels.get(order.Print_Place, order.Print_Place) }}</div>
+            <div><strong>状态：</strong><span class="badge badge-{{ status_badges.get(order.Print_Status, 'gray') }}">{{ status_labels.get(order.Print_Status, order.Print_Status) }}</span></div>
+            <div><strong>文件名：</strong>{{ order.File_Name }}</div>
+            <div><strong>金额：</strong>￥{{ '%.2f' % (order.Print_Money or 0) }}</div>
+            <div><strong>下单时间：</strong>{{ order.Born_Date.strftime('%Y-%m-%d %H:%M:%S') if order.Born_Date else '-' }}</div>
+            <div><strong>份数：</strong>{{ order.Print_Copies }}</div>
+            <div><strong>页数：</strong>{{ order.Print_pages or '-' }}</div>
+            <div><strong>纸张：</strong>{{ order.Print_size }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-head"><h3>🕓 操作时间线</h3></div>
+    <div class="card-body pad-sm">
+        {% if logs %}
+        <table class="tbl">
+            <thead>
+                <tr>
+                    <th style="width:170px">时间</th>
+                    <th style="width:140px">动作</th>
+                    <th style="width:140px">状态变化</th>
+                    <th>备注</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.Created_At.strftime('%Y-%m-%d %H:%M:%S') if log.Created_At else '-' }}</td>
+                    <td>{{ log.Action }}</td>
+                    <td>
+                        {% if log.From_Status is not none or log.To_Status is not none %}
+                            {{ status_labels.get(log.From_Status, log.From_Status) if log.From_Status is not none else '-' }}
+                            →
+                            {{ status_labels.get(log.To_Status, log.To_Status) if log.To_Status is not none else '-' }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ log.Note or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <div class="empty">暂无日志</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

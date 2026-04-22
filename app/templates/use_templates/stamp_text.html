@@ -1,0 +1,130 @@
+{% extends "use_templates/_base_stamp.html" %}
+{% set active = 'text' %}
+{% block title %}文档打印{% endblock %}
+
+{% block extra_style %}
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+}
+.feature-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 28px 24px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    transition: all .3s;
+}
+.feature-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(30,159,255,.12); }
+.feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: #E8F4FF;
+    color: #1E9FFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 14px;
+}
+.feature-card h3 { font-size: 17px; margin-bottom: 8px; color: #333; }
+.feature-card p { font-size: 13px; color: #888; }
+
+.price-table {
+    max-width: 900px;
+    margin: 16px auto 0;
+    background: #fff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
+.price-table table { width: 100%; border-collapse: collapse; }
+.price-table th, .price-table td {
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+.price-table th { background: #fafbfc; color: #555; font-weight: normal; }
+.price-table td strong { color: #1E9FFF; font-size: 16px; }
+
+.support-formats {
+    max-width: 900px;
+    margin: 20px auto 0;
+    padding: 18px 24px;
+    background: #E8F4FF;
+    border-radius: 8px;
+    color: #0277BD;
+    font-size: 14px;
+}
+.support-formats strong { color: #01579B; }
+
+.cta-section {
+    text-align: center;
+    margin-top: 40px;
+}
+.cta-section .btn-primary { margin: 0 6px; }
+{% endblock %}
+
+{% block body %}
+<section class="page-hero">
+    <h1>文档打印</h1>
+    <p>支持 Word / Excel / PPT / PDF，黑白彩色、单双面自由选择，在线上传，到店即取</p>
+</section>
+
+<div class="container">
+    <h2 class="section-title">文档打印特色</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">件</div>
+            <h3>多格式支持</h3>
+            <p>doc / docx / xls / xlsx / ppt / pptx / pdf，自动转换为 PDF 后打印，忠于原版式</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">色</div>
+            <h3>黑白/彩色</h3>
+            <p>黑白 单面 0.3 / 双面 0.5 元/页，彩色 单面 1.0 / 双面 1.7 元/页；单面、双面长边、双面短边三种装订可选</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">速</div>
+            <h3>极速出稿</h3>
+            <p>上传即转码，支付成功后订单进入打印队列，到店凭订单号取件即可</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon">隐</div>
+            <h3>隐私保护</h3>
+            <p>文件上传加密存储，订单打印完成后自动从队列中移除</p>
+        </div>
+    </div>
+
+    <h2 class="section-title" style="margin-top:50px;">价格参考</h2>
+    <div class="price-table">
+        <table>
+            <tr><th>打印方式</th><th>颜色</th><th>纸张</th><th>单价</th></tr>
+            <tr><td>单面</td><td>黑白</td><td>A4</td><td><strong>0.3 元/页</strong></td></tr>
+            <tr><td>双面</td><td>黑白</td><td>A4</td><td><strong>0.5 元/页</strong></td></tr>
+            <tr><td>单面</td><td>彩色</td><td>A4</td><td><strong>1.0 元/页</strong></td></tr>
+            <tr><td>双面</td><td>彩色</td><td>A4</td><td><strong>1.7 元/页</strong></td></tr>
+        </table>
+    </div>
+
+    <div class="support-formats">
+        <strong>支持文件格式：</strong>doc、docx、xls、xlsx、ppt、pptx、pdf。单文件建议不超过 50MB，系统自动计算页数并计价。
+    </div>
+
+    <div class="cta-section">
+        {% if current_user.is_authenticated %}
+            <a class="btn-primary" href="{{ url_for('printer.select') }}">立即上传打印</a>
+            {% if current_user.Role == 'admin' %}
+            <a class="btn-outline" href="{{ url_for('admin.inded_query') }}">订单管理</a>
+            {% endif %}
+        {% else %}
+            <a class="btn-primary" href="{{ url_for('login.back_login') }}">登录后立即上传</a>
+            <a class="btn-outline" href="{{ url_for('login.register') }}">免费注册</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
