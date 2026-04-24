@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
     <title>打印中心</title>
-    <link rel="stylesheet" type="text/css" href="../../static/layui/css/layui.css" media="all"/>
+    <link rel="stylesheet" href="https://cdn.staticfile.net/layui/2.9.21/css/layui.min.css" media="all"/>
     <style type="text/css">
         * { box-sizing: border-box; }
         body {
@@ -379,5 +379,62 @@
         </div>
     </div>
 </div>
+<script>
+(function() {
+    var MAX_SIZE = 20 * 1024 * 1024; // 20MB
+    var form = document.querySelector('form[enctype]');
+    var fileInput = form ? form.querySelector('input[type="file"]') : null;
+
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files[0] && this.files[0].size > MAX_SIZE) {
+                alert('文件大小不能超过 20MB（当前 ' + (this.files[0].size / 1024 / 1024).toFixed(1) + 'MB），请压缩后重试');
+                this.value = '';
+            }
+        });
+    }
+
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (fileInput && fileInput.files[0] && fileInput.files[0].size > MAX_SIZE) {
+                e.preventDefault();
+                alert('文件大小超过 20MB 限制');
+            }
+        });
+    }
+
+    // 价格预估：选择参数时实时计算
+    var colorSel = document.querySelector('select[name="print_color"]');
+    var waySel = document.querySelector('select[name="print_way"]');
+    var copiesInput = document.querySelector('input[name="print_copies"]');
+    var tipsCard = document.querySelector('.tips-card');
+
+    function updateEstimate() {
+        if (!colorSel || !waySel || !copiesInput || !tipsCard) return;
+        var color = colorSel.value;
+        var way = waySel.value;
+        var copies = parseInt(copiesInput.value) || 1;
+        var isDuplex = way !== 'one-sided';
+        var unitPrice;
+        if (color === 'CMYGray') {
+            unitPrice = isDuplex ? 0.5 : 0.3;
+        } else {
+            unitPrice = isDuplex ? 1.7 : 1.0;
+        }
+        var pricePerCopy = unitPrice * copies;
+        tipsCard.innerHTML = '<strong>价格预估</strong>'
+            + '<p>单价：¥' + unitPrice.toFixed(1) + '/页'
+            + (isDuplex ? '（双面）' : '（单面）')
+            + (color === 'CMYGray' ? '黑白' : '彩色')
+            + ' × ' + copies + '份'
+            + '<br>每页费用：<b>¥' + pricePerCopy.toFixed(2) + '</b> × 页数 = 最终金额'
+            + '<br><span style="color:#94a3b8;font-size:12px;">实际金额以提交后系统识别页数为准</span></p>';
+    }
+
+    if (colorSel) colorSel.addEventListener('change', updateEstimate);
+    if (waySel) waySel.addEventListener('change', updateEstimate);
+    if (copiesInput) copiesInput.addEventListener('input', updateEstimate);
+})();
+</script>
 </body>
 </html>

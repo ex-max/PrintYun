@@ -1,6 +1,6 @@
 # 自定义函数
 
-import PyPDF2, subprocess, os, filetype, uuid, datetime, hashlib, json, requests, redis
+import PyPDF2, subprocess, os, filetype, uuid, datetime, hashlib, json, requests, redis, logging
 from app.models import User
 
 
@@ -41,7 +41,7 @@ def switch_topdf(filename):
     # cmd = "libreoffice --headless --convert-to pdf:writer_pdf_Export {} --outdir {}".format(filename, FileSaveDir) #mac linux
 
     cmd = "soffice --headless --convert-to pdf:writer_pdf_Export {} --outdir {}".format(filename, FileSaveDir)  # win
-    print(cmd)
+    logging.getLogger(__name__).info('转换命令: %s', cmd)
     try:
         returnCode = subprocess.call(cmd, shell=True)
         # returnCode = os.system(cmd)

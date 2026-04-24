@@ -1,11 +1,8 @@
 import datetime
-from io import BytesIO
-
-from flask import Blueprint, request, render_template, abort, redirect, url_for, flash, jsonify, send_file
+from flask import Blueprint, request, render_template, abort, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import or_, func
-from openpyxl import Workbook
-from app.models import db, User, Order, PrintPlace, OrderLog
+from app.models import db, User, Order
 from app.forms import Print as PrintForm
 
 admin = Blueprint('admin', __name__)
@@ -74,52 +71,6 @@ def _parse_date(s):
         return datetime.datetime.strptime(s, '%Y-%m-%d').date()
     except Exception:
         return None
-
-
-def _apply_order_filters(q, status_arg, date_from, date_to, tel):
-    if status_arg == 'all':
-        pass
-    elif status_arg == 'active':
-        q = q.filter(Order.Print_Status != ST_CANCELLED)
-    elif status_arg == 'unpaid':
-        q = q.filter(Order.Print_Status == ST_UNPAID)
-    elif status_arg == 'printing':
-        q = q.filter(Order.Print_Status.in_([ST_PAID, ST_PRINTING]))
-    elif status_arg == 'done':
-        q = q.filter(Order.Print_Status == ST_DONE)
-    elif status_arg == 'failed':
-        q = q.filter(Order.Print_Status == ST_FAILED)
-    elif status_arg == 'cancelled':
-        q = q.filter(Order.Print_Status == ST_CANCELLED)
-
-    if date_from:
-        q = q.filter(Order.Born_Date_Day >= date_from)
-    if date_to:
-        q = q.filter(Order.Born_Date_Day <= date_to)
-    if tel:
-        uids = [u.Id for u in User.query.filter(User.Tel_Number.like('%' + tel + '%')).all()]
-        if uids:
-            q = q.filter(Order.User_Id.in_(uids))
-        else:
-            q = q.filter(Order.Id == -1)
-    return q
-
-
-def _write_order_log(order, action, from_status=None, to_status=None, note=''):
-    db.session.add(OrderLog(
-        Order_Id=order.Id,
-        Operator_Id=getattr(current_user, 'Id', None) if getattr(current_user, 'is_authenticated', False) else None,
-        Action=action,
-        From_Status=from_status,
-        To_Status=to_status,
-        Note=note or '',
-    ))
-
-
-def _place_options_from_db():
-    return (PrintPlace.query
-            .order_by(PrintPlace.Sort.asc(), PrintPlace.Id.asc())
-            .all())
 
 
 # ---------- 旧路由兼容：重定向到新导航结构 ----------
@@ -304,7 +255,33 @@ def orders():
         page = 1
     per_page = 20
 
-    q = _apply_order_filters(Order.query, status_arg, date_from, date_to, tel)
+    q = Order.query
+
+    if status_arg == 'all':
+        pass
+    elif status_arg == 'active':
+        q = q.filter(Order.Print_Status != ST_CANCELLED)
+    elif status_arg == 'unpaid':
+        q = q.filter(Order.Print_Status == ST_UNPAID)
+    elif status_arg == 'printing':
+        q = q.filter(Order.Print_Status.in_([ST_PAID, ST_PRINTING]))
+    elif status_arg == 'done':
+        q = q.filter(Order.Print_Status == ST_DONE)
+    elif status_arg == 'failed':
+        q = q.filter(Order.Print_Status == ST_FAILED)
+    elif status_arg == 'cancelled':
+        q = q.filter(Order.Print_Status == ST_CANCELLED)
+
+    if date_from:
+        q = q.filter(Order.Born_Date_Day >= date_from)
+    if date_to:
+        q = q.filter(Order.Born_Date_Day <= date_to)
+    if tel:
+        uids = [u.Id for u in User.query.filter(User.Tel_Number.like('%' + tel + '%')).all()]
+        if uids:
+            q = q.filter(Order.User_Id.in_(uids))
+        else:
+            q = q.filter(Order.Id == -1)  # 强制空集
 
     pagination = q.order_by(Order.Id.desc()).paginate(page=page, per_page=per_page, error_out=False)
     user_map = {u.Id: u.Tel_Number for u in User.query.all()}
@@ -324,52 +301,6 @@ def orders():
             'date_to': request.args.get('date_to', ''),
             'tel': tel,
         },
-    )
-
-
-@admin.route('/orders/export')
-def export_orders():
-    status_arg = request.args.get('status', 'active')
-    date_from = _parse_date(request.args.get('date_from'))
-    date_to = _parse_date(request.args.get('date_to'))
-    tel = (request.args.get('tel') or '').strip()
-
-    rows = (_apply_order_filters(Order.query, status_arg, date_from, date_to, tel)
-            .order_by(Order.Id.desc())
-            .all())
-    user_map = {u.Id: u.Tel_Number for u in User.query.all()}
-    place_labels = _place_labels()
-
-    wb = Workbook()
-    ws = wb.active
-    ws.title = '订单导出'
-    ws.append(['订单号', '手机号', '文件名', '打印点', '份数', '页数', '颜色', '单双面', '纸张', '金额', '状态', '下单时间'])
-
-    for o in rows:
-        ws.append([
-            o.Trade_Number,
-            user_map.get(o.User_Id, ''),
-            o.File_Name,
-            place_labels.get(o.Print_Place, o.Print_Place),
-            o.Print_Copies,
-            o.Print_pages,
-            '黑白' if o.Print_Colour == 'CMYGray' else '彩色',
-            '单面' if o.Print_way == 'one-sided' else ('双面长边' if o.Print_way == 'two-sided-long-edge' else '双面短边'),
-            o.Print_size,
-            float(o.Print_Money or 0),
-            STATUS_LABELS.get(o.Print_Status, o.Print_Status),
-            o.Born_Date.strftime('%Y-%m-%d %H:%M:%S') if o.Born_Date else '',
-        ])
-
-    bio = BytesIO()
-    wb.save(bio)
-    bio.seek(0)
-    filename = 'orders_{}.xlsx'.format(datetime.datetime.now().strftime('%Y%m%d_%H%M%S'))
-    return send_file(
-        bio,
-        as_attachment=True,
-        download_name=filename,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
 
 
@@ -401,39 +332,12 @@ def change_order_status(trade_number):
         return redirect(request.form.get('next') or url_for('admin.orders'))
 
     o.Print_Status = target
-    _write_order_log(
-        o,
-        action='status_change',
-        from_status=cur,
-        to_status=target,
-        note='管理员修改订单状态'
-    )
     db.session.commit()
     flash(
         f'订单 {trade_number} 已从"{STATUS_LABELS.get(cur, cur)}"改为"{STATUS_LABELS.get(target, target)}"',
         'success'
     )
     return redirect(request.form.get('next') or url_for('admin.orders'))
-
-
-@admin.route('/order/<trade_number>')
-def order_detail(trade_number):
-    order = Order.query.filter_by(Trade_Number=trade_number).first_or_404()
-    logs = (OrderLog.query
-            .filter_by(Order_Id=order.Id)
-            .order_by(OrderLog.Created_At.desc(), OrderLog.Id.desc())
-            .all())
-    user_map = {u.Id: u.Tel_Number for u in User.query.all()}
-    return render_template(
-        'admin/order_detail.html',
-        active='orders',
-        order=order,
-        logs=logs,
-        user_map=user_map,
-        place_labels=_place_labels(),
-        status_labels=STATUS_LABELS,
-        status_badges=STATUS_BADGES,
-    )
 
 
 # ---------- 用户管理 ----------
@@ -507,62 +411,19 @@ def change_user_role(uid):
     return redirect(url_for('admin.users'))
 
 
-# ---------- 打印点管理 ----------
+# ---------- 打印点管理（P2-1 占位，后续接数据库） ----------
 
 @admin.route('/places')
 def print_places():
-    places = _place_options_from_db()
+    """目前打印点仍从 forms.Print.print_place.choices 读取（硬编码）。
+    后续会迁移到 PrintPlace 表 + 后台 CRUD。
+    """
+    labels = _place_labels()
     return render_template(
         'admin/print_places.html',
         active='places',
-        places=places,
+        labels=labels,
     )
-
-
-@admin.route('/places/add', methods=['POST'])
-def add_place():
-    key = (request.form.get('key') or '').strip()
-    name = (request.form.get('name') or '').strip()
-    address = (request.form.get('address') or '').strip()
-    try:
-        sort = int((request.form.get('sort') or '0').strip())
-    except ValueError:
-        sort = 0
-
-    if not key or not name:
-        flash('Key 和展示名不能为空', 'error')
-        return redirect(url_for('admin.print_places'))
-    if PrintPlace.query.filter_by(Key=key).first():
-        flash('该 Key 已存在，请换一个', 'error')
-        return redirect(url_for('admin.print_places'))
-
-    db.session.add(PrintPlace(Key=key, Name=name, Address=address, Sort=sort, Is_Active=True))
-    db.session.commit()
-    flash('打印点已新增', 'success')
-    return redirect(url_for('admin.print_places'))
-
-
-@admin.route('/places/<int:pid>/update', methods=['POST'])
-def update_place(pid):
-    place = PrintPlace.query.get_or_404(pid)
-    place.Name = (request.form.get('name') or '').strip() or place.Name
-    place.Address = (request.form.get('address') or '').strip()
-    try:
-        place.Sort = int((request.form.get('sort') or place.Sort).strip())
-    except ValueError:
-        pass
-    db.session.commit()
-    flash('打印点已更新', 'success')
-    return redirect(url_for('admin.print_places'))
-
-
-@admin.route('/places/<int:pid>/toggle', methods=['POST'])
-def toggle_place(pid):
-    place = PrintPlace.query.get_or_404(pid)
-    place.Is_Active = not bool(place.Is_Active)
-    db.session.commit()
-    flash(('已启用' if place.Is_Active else '已停用') + ' 打印点 ' + place.Name, 'success')
-    return redirect(url_for('admin.print_places'))
 
 
 # ---------- 其他 ----------

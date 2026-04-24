@@ -1,4 +1,4 @@
-import datetime
+import datetime, logging
 from urllib.parse import urlparse
 from flask import Blueprint, render_template, request, flash, session, redirect, url_for, jsonify, abort
 from app.test import ali_sms
@@ -11,6 +11,8 @@ login = Blueprint(
     'login',
     __name__
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _safe_next(next_page, role):
@@ -79,7 +81,7 @@ def register():
             label_text = label.text if label else field_name
             for m in msgs:
                 errors.append(f'{label_text}: {m}')
-        print('[register] 表单校验失败：', form.errors)
+        logger.warning('表单校验失败：%s', form.errors)
         error_msg = ' | '.join(errors) if errors else '表单校验失败'
         return render_template('use_templates/c_register.html',
                                error_msg=error_msg, form=form)
@@ -177,9 +179,15 @@ def change_password():
 @login.route('/me')
 @login_required
 def me():
-    """个人中心：账户信息 + 我的订单（按状态过滤）。"""
+    """个人中心：账户信息 + 我的订单（按状态过滤 + 分页）。"""
     # 状态过滤：all / unpaid(0) / paid(1,2) / done(3) / cancelled(-2)
     status_filter = request.args.get('status', 'all')
+    try:
+        page = max(1, int(request.args.get('page', 1)))
+    except (ValueError, TypeError):
+        page = 1
+    per_page = 20
+
     q = Order.query.filter_by(User_Id=current_user.Id)
     if status_filter == 'unpaid':
         q = q.filter(Order.Print_Status == 0)
@@ -191,21 +199,30 @@ def me():
         q = q.filter(Order.Print_Status == -2)
     else:  # all：默认不显示已取消（软删）
         q = q.filter(Order.Print_Status != -2)
-    orders = q.order_by(Order.Id.desc()).limit(100).all()
+    pagination = q.order_by(Order.Id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    orders = pagination.items
 
-    # 统计（用一次全量查询聚合四个状态 + 累计金额）
-    all_orders = Order.query.filter_by(User_Id=current_user.Id).all()
-    counts = {
-        'all':       sum(1 for o in all_orders if o.Print_Status != -2),
-        'unpaid':    sum(1 for o in all_orders if o.Print_Status == 0),
-        'paid':      sum(1 for o in all_orders if o.Print_Status in (1, 2)),
-        'done':      sum(1 for o in all_orders if o.Print_Status == 3),
-        'cancelled': sum(1 for o in all_orders if o.Print_Status == -2),
-    }
-    total_paid = sum(
-        (o.Print_Money or 0) for o in all_orders
-        if o.Print_Status is not None and o.Print_Status >= 1
+    # 统计（用 SQL 聚合，比全量加载快得多）
+    count_rows = (
+        db.session.query(Order.Print_Status, db.func.count(Order.Id))
+        .filter_by(User_Id=current_user.Id)
+        .group_by(Order.Print_Status)
+        .all()
     )
+    status_counts = dict(count_rows)
+    counts = {
+        'all':       sum(v for k, v in status_counts.items() if k != -2),
+        'unpaid':    status_counts.get(0, 0),
+        'paid':      status_counts.get(1, 0) + status_counts.get(2, 0),
+        'done':      status_counts.get(3, 0),
+        'cancelled': status_counts.get(-2, 0),
+    }
+    total_paid_row = (
+        db.session.query(db.func.coalesce(db.func.sum(Order.Print_Money), 0))
+        .filter(Order.User_Id == current_user.Id, Order.Print_Status >= 1)
+        .scalar()
+    )
+    total_paid = float(total_paid_row)
 
     # 手机号脱敏：138****0002
     tel = current_user.Tel_Number or ''
@@ -217,6 +234,7 @@ def me():
     return render_template(
         'use_templates/personal_center.html',
         orders=orders,
+        pagination=pagination,
         counts=counts,
         total_paid=total_paid,
         tel_masked=tel_masked,
@@ -224,6 +242,54 @@ def me():
         place_labels=place_labels,
     )
 
+
+@login.route('/me/status_check')
+@login_required
+def me_status_check():
+    """AJAX: 前端轮询订单状态变化。
+
+    请求：?ids=TN1,TN2,TN3&statuses=0,1,0  （当前页可见订单号和状态）
+    响应：{changes: [{trade_number, old_status, new_status, label}, ...]}
+    """
+    ids_str = request.args.get('ids', '')
+    statuses_str = request.args.get('statuses', '')
+    if not ids_str:
+        return jsonify({'changes': []})
+
+    trade_numbers = [s.strip() for s in ids_str.split(',') if s.strip()]
+    try:
+        old_statuses = [int(s) for s in statuses_str.split(',')]
+    except (ValueError, TypeError):
+        old_statuses = []
+
+    if len(trade_numbers) != len(old_statuses):
+        return jsonify({'changes': []})
+
+    # 查询当前状态
+    orders = (
+        Order.query
+        .filter(Order.Trade_Number.in_(trade_numbers), Order.User_Id == current_user.Id)
+        .all()
+    )
+    status_map = {o.Trade_Number: o.Print_Status for o in orders}
+
+    STATUS_TEXT = {
+        -2: '已取消', -1: '打印失败', 0: '未支付',
+        1: '已支付', 2: '正在打印', 3: '已完成',
+    }
+
+    changes = []
+    for tn, old in zip(trade_numbers, old_statuses):
+        new = status_map.get(tn)
+        if new is not None and new != old:
+            changes.append({
+                'trade_number': tn,
+                'old_status': old,
+                'new_status': new,
+                'label': STATUS_TEXT.get(new, f'状态 {new}'),
+            })
+
+    return jsonify({'changes': changes})
 
 @login.route('/order/<trade_number>/cancel', methods=['POST'])
 @login_required

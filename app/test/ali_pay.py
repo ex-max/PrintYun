@@ -1,6 +1,17 @@
 from flask import Flask, Blueprint, render_template, request, flash, session, redirect, url_for
-import json, os, time, random
-from app.models import User, Order, db
+import json, os, time, random, logging
+from app.models import User, Order, OrderLog, db
+
+logger = logging.getLogger(__name__)
+
+
+def _notify_printer_daemon(order_id):
+    """支付成功后发 Redis 信号，让 printer_daemon 立即唤醒处理。"""
+    try:
+        from worker import conn as redis_conn
+        redis_conn.lpush('print_queue', str(order_id))
+    except Exception:
+        pass  # Redis 不可用时 daemon 仍会通过 DB 轮询兜底
 
 cloud_pay = Blueprint('cloud_pay', __name__)
 
@@ -32,7 +43,7 @@ def _read_key(path):
         with open(path) as f:
             return f.read()
     except Exception as e:
-        print(f'[ali_pay] 读取密钥失败 {path}: {e}')
+        logger.warning('读取密钥失败 %s: %s', path, e)
         return None
 
 
@@ -54,7 +65,7 @@ def get_alipay():
             debug=_ALIPAY_DEBUG,
         )
     except Exception as e:
-        print(f'[ali_pay] 初始化 AliPay 失败: {e}')
+        logger.error('初始化 AliPay 失败: %s', e)
         _alipays = None
     return _alipays
 
@@ -147,25 +158,26 @@ def alipayresult1():
         try:
             verified = alipays.verify(data, signature)
         except Exception as e:
-            print(f'[alipayresult1] 验签异常: {e}')
+            logger.warning('验签异常: %s', e)
 
     alipay_trade_no = data.get("out_trade_no", "")
     db_trade_no = _to_db_trade_number(alipay_trade_no)
     if verified and db_trade_no:
-        order = Order.query.filter(Order.Trade_Number == db_trade_no).first()
+        order = Order.query.filter(Order.Trade_Number == db_trade_no).with_for_update().first()
         if order and order.Print_Status == 0:
             # 支付成功后直接进入打印队列（2），店员端只管“完成/失败”
             old_status = order.Print_Status
-            order.Print_Status = 2
+            order.Print_Status = 1
             db.session.add(OrderLog(
                 Order_Id=order.Id,
                 Operator_Id=None,
                 Action='paid',
                 From_Status=old_status,
-                To_Status=2,
+                To_Status=1,
                 Note='支付宝同步回跳确认支付成功',
             ))
             db.session.commit()
+            _notify_printer_daemon(order.Id)
 
     return render_template('use_templates/pay_success.html',
                            ok=verified, trade_id=db_trade_no)
@@ -185,25 +197,26 @@ def alipayresult2():
     try:
         success = alipays.verify(data, signature)
     except Exception as e:
-        print(f'[alipayresult2] 验签异常: {e}')
+        logger.warning('验签异常: %s', e)
         return "fail"
 
     if success and data.get("trade_status") in ("TRADE_SUCCESS", "TRADE_FINISHED"):
         db_trade_no = _to_db_trade_number(data.get("out_trade_no", ""))
-        result_order = Order.query.filter(Order.Trade_Number == db_trade_no).first()
+        result_order = Order.query.filter(Order.Trade_Number == db_trade_no).with_for_update().first()
         if result_order and result_order.Print_Status == 0:
-            # 支付完成后直接进入打印队列（2）
+            # 支付成功 → 状态 1（已支付待打印），由 printer_daemon 领取后改为 2
             old_status = result_order.Print_Status
-            result_order.Print_Status = 2
+            result_order.Print_Status = 1
             db.session.add(result_order)
             db.session.add(OrderLog(
                 Order_Id=result_order.Id,
                 Operator_Id=None,
                 Action='paid',
                 From_Status=old_status,
-                To_Status=2,
+                To_Status=1,
                 Note='支付宝异步通知确认支付成功',
             ))
             db.session.commit()
+            _notify_printer_daemon(result_order.Id)
         return "success"
     return "fail"

@@ -188,12 +188,32 @@ def main_loop():
         log.error('找不到 SumatraPDF.exe，请在 .env 里设置 SUMATRA_PATH')
         sys.exit(1)
 
+    # Redis 连接用于接收打印信号
+    try:
+        import redis as _redis
+        _redis_url = os.getenv('REDISTOGO_URL', 'redis://:123456@localhost:6379')
+        _rconn = _redis.Redis.from_url(_redis_url)
+        _rconn.ping()
+        log.info('Redis 信号通知已启用（blpop print_queue）')
+    except Exception as e:
+        _rconn = None
+        log.warning('Redis 不可用，回退到纯 DB 轮询：%s', e)
+
     while _running:
         try:
+            # 优先通过 Redis blpop 等待信号（支付成功时 lpush 的）
+            if _rconn:
+                try:
+                    msg = _rconn.blpop('print_queue', timeout=POLL_INTERVAL)
+                except Exception:
+                    msg = None
+                    time.sleep(POLL_INTERVAL)
+            else:
+                time.sleep(POLL_INTERVAL)
+
             with app.app_context():
                 order = claim_one_order()
                 if order is None:
-                    time.sleep(POLL_INTERVAL)
                     continue
 
                 ok = send_to_printer(order)

@@ -6,8 +6,8 @@
     <title>订单查询</title>
     <link rel="stylesheet" type="text/css" href="../../static/layui_admin/css/search.css"/>
 
-    <link rel="stylesheet" type="text/css" href="../../static/layui/css/layui.css"/>
-    <script type="text/javascript" src="../../static/layui/jquery-1.9.1.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.staticfile.net/layui/2.9.21/css/layui.min.css"/>
+    <script type="text/javascript" src="https://cdn.staticfile.net/jquery/1.9.1/jquery.min.js"></script>
 
 </head>
 
@@ -25,8 +25,8 @@
         </div>
         {% if current_user.Role == 'admin' %}
             <div class="layui-col-md3" style="margin-right: 10px">
-                <line class="layui-tree-line layui-text">手机号</line>
-                <input id="tel_num" type="text" class="layui-input" placeholder="手机号搜索">
+                <line class="layui-tree-line layui-text">手机�?/line>
+                <input id="tel_num" type="text" class="layui-input" placeholder="手机号搜�?>
             </div>
         {% endif %}
         <button id="submit" class="layui-btn" style="margin-top: 22px">搜索</button>
@@ -37,7 +37,7 @@
 <div id="demo1"></div>
 
 <script type="text/javascript" src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
-<script type="text/javascript" src="../../static/layui/layui.js"></script>
+<script type="text/javascript" src="https://cdn.staticfile.net/layui/2.9.21/layui.min.js"></script>
 {% if current_user.Role == 'admin' %}
     <script>
         layui.use('table', function () {
@@ -58,7 +58,7 @@
                     [
                         {
                             field: 'Print_File_Dir',
-                            title: '文件名',
+                            title: '文件�?,
                             fixed: 'left',
                             unresize: true,
                             sort: true,
@@ -94,17 +94,17 @@
                         },
                         {
                             field: 'Print_Status',
-                            title: '状态',
+                            title: '状�?,
                             sort: true,
                         },
                         {
                             field: 'Tel_Num',
-                            title: '手机号',
+                            title: '手机�?,
                             sort: true,
                         },
                         {
                             field: 'Trade_Number',
-                            title: '订单号',
+                            title: '订单�?,
                             sort: true,
                         }
                     ]
@@ -160,7 +160,7 @@
                     [
                         {
                             field: 'File_Name',
-                            title: '文件名',
+                            title: '文件�?,
                             fixed: 'left',
                             unresize: true,
                             sort: true,
@@ -196,17 +196,17 @@
                         },
                         {
                             field: 'Print_Status',
-                            title: '状态',
+                            title: '状�?,
                             sort: true,
                         },
                         {
                             field: 'Tel_Num',
-                            title: '手机号',
+                            title: '手机�?,
                             sort: true,
                         },
                         {
                             field: 'Trade_Number',
-                            title: '订单号',
+                            title: '订单�?,
                             sort: true,
                         }
                     ]

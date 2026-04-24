@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no"/>
+    <title>文件转换�?/title>
+    <link rel="stylesheet" type="text/css" href="https://cdn.staticfile.net/layui/2.9.21/css/layui.min.css"/>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1E9FFF 0%, #5FB878 100%);
+            font-family: "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+        }
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.15);
+            padding: 50px 40px;
+            text-align: center;
+            max-width: 440px;
+            width: 90%;
+            animation: fadeUp .5s ease;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 旋转圆环 */
+        .spinner {
+            width: 64px; height: 64px;
+            margin: 0 auto 28px;
+            border: 5px solid #e8f2ff;
+            border-top-color: #1E9FFF;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .card h2 {
+            font-size: 22px;
+            color: #1f2d3d;
+            margin-bottom: 12px;
+        }
+        .filename {
+            display: inline-block;
+            max-width: 100%;
+            padding: 8px 18px;
+            background: #f0f7ff;
+            border-radius: 8px;
+            color: #1E9FFF;
+            font-size: 14px;
+            word-break: break-all;
+            margin-bottom: 18px;
+        }
+        .hint {
+            color: #7a8599;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .progress-bar {
+            margin: 24px auto 0;
+            width: 80%;
+            height: 6px;
+            background: #e8f2ff;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #1E9FFF, #5FB878);
+            border-radius: 3px;
+            transition: width .5s ease;
+        }
+        #status-text {
+            margin-top: 14px;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        /* 成功/失败状�?*/
+        .icon-ok { color: #5FB878; font-size: 64px; margin-bottom: 16px; display: none; }
+        .icon-fail { color: #FF5722; font-size: 64px; margin-bottom: 16px; display: none; }
+
+        .retry-btn {
+            display: none;
+            margin-top: 20px;
+            padding: 12px 32px;
+            border: none;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #1E9FFF, #5FB878);
+            color: #fff;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .retry-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(30,159,255,.25);
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="spinner" id="spinner"></div>
+    <i class="layui-icon layui-icon-ok-circle icon-ok" id="icon-ok"></i>
+    <i class="layui-icon layui-icon-close-fill icon-fail" id="icon-fail"></i>
+
+    <h2 id="title">正在转换文件�?/h2>
+    <div class="filename">{{ filename }}</div>
+    <p class="hint" id="hint">系统正在将您的文件转换为 PDF 格式，请稍候片刻�?br>转换完成后会自动跳转到支付页面�?/p>
+
+    <div class="progress-bar"><div class="fill" id="progress"></div></div>
+    <div id="status-text">正在排队等待转换�?/div>
+
+    <a class="retry-btn" id="retry-btn" href="/printer/select">重新上传文件</a>
+</div>
+
+<script src="https://cdn.staticfile.net/jquery/1.9.1/jquery.min.js"></script>
+<script>
+(function() {
+    var $progress = $('#progress');
+    var $title = $('#title');
+    var $hint = $('#hint');
+    var $status = $('#status-text');
+    var $spinner = $('#spinner');
+    var $iconOk = $('#icon-ok');
+    var $iconFail = $('#icon-fail');
+    var $retryBtn = $('#retry-btn');
+    var pct = 5;
+    var pollCount = 0;
+    var maxPoll = 30;  // 最多轮�?30 次（60 秒）
+
+    // 假进度条：每秒推进一�?    var progressTimer = setInterval(function() {
+        if (pct < 85) {
+            pct += Math.random() * 5 + 1;
+            $progress.css('width', Math.min(pct, 85) + '%');
+        }
+    }, 1000);
+
+    function showSuccess(data) {
+        clearInterval(progressTimer);
+        $progress.css('width', '100%');
+        $spinner.hide();
+        $iconOk.show();
+        $title.text('转换完成�?);
+        $status.text('�?' + data.pageCount + ' 页，费用 ¥' + data.cost + '，即将跳转支付页�?);
+        $hint.text('');
+
+        // 构建支付�?URL（通过一个隐藏表单POST，或者直接存数据到session后跳转）
+        // 这里把数据以 query 参数传递给一个支付中转页
+        setTimeout(function() {
+            // 创建一个隐藏表单提交到支付页（保持与原有模板兼容）
+            var form = $('<form method="GET" action="/printer/pay_page"></form>');
+            form.append($('<input type="hidden" name="tradeid">').val(data.tradeid));
+            form.append($('<input type="hidden" name="printfile">').val(data.printfile));
+            form.append($('<input type="hidden" name="new_filename">').val(data.new_filename));
+            form.append($('<input type="hidden" name="print_place">').val(data.print_place));
+            form.append($('<input type="hidden" name="print_copies">').val(data.print_copies));
+            form.append($('<input type="hidden" name="pageCount">').val(data.pageCount));
+            form.append($('<input type="hidden" name="cost">').val(data.cost));
+            form.append($('<input type="hidden" name="user_tel">').val(data.user_tel));
+            form.append($('<input type="hidden" name="now">').val(data.now));
+            $('body').append(form);
+            form.submit();
+        }, 1200);
+    }
+
+    function showFail(msg) {
+        clearInterval(progressTimer);
+        $progress.css({'width': '100%', 'background': '#FF5722'});
+        $spinner.hide();
+        $iconFail.show();
+        $title.text('转换失败');
+        $hint.text(msg || '请重新上传文件，建议上传 PDF 格式�?);
+        $status.text('');
+        $retryBtn.show();
+    }
+
+    // �?2 秒轮询一�?    var pollTimer = setInterval(function() {
+        pollCount++;
+        if (pollCount > maxPoll) {
+            clearInterval(pollTimer);
+            showFail('转换超时，请重新上传');
+            return;
+        }
+        $status.text('正在转换中�?(' + (pollCount * 2) + '�?');
+
+        $.getJSON('/printer/convert_status', function(res) {
+            if (res.status === 'done') {
+                clearInterval(pollTimer);
+                showSuccess(res);
+            } else if (res.status === 'failed' || res.status === 'error') {
+                clearInterval(pollTimer);
+                showFail(res.msg);
+            }
+            // status === 'converting' �?继续轮询
+        }).fail(function() {
+            // 网络错误不立即停止，可能是临时抖�?            $status.text('网络请求异常，正在重试�?);
+        });
+    }, 2000);
+})();
+</script>
+</body>
+</html>

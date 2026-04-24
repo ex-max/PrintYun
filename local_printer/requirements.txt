@@ -1,0 +1,5 @@
+pystray
+Pillow
+qrcode[pil]
+PyPDF2
+requests

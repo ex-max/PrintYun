@@ -1,8 +1,38 @@
 from app import app, db
-import click
+import click, os, shutil
 from datetime import datetime
 from app.models import User
-from flask import render_template
+from flask import render_template, jsonify
+
+
+@app.route('/health')
+def health_check():
+    """健康检查：DB + Redis + 磁盘空间。"""
+    result = {'status': 'ok', 'db': False, 'redis': False, 'disk_free_mb': 0}
+    # DB
+    try:
+        db.session.execute(db.text('SELECT 1'))
+        result['db'] = True
+    except Exception:
+        result['status'] = 'degraded'
+    # Redis
+    try:
+        from worker import conn as redis_conn
+        redis_conn.ping()
+        result['redis'] = True
+    except Exception:
+        result['status'] = 'degraded'
+    # 磁盘
+    try:
+        usage = shutil.disk_usage(os.path.dirname(__file__))
+        result['disk_free_mb'] = round(usage.free / 1024 / 1024)
+        if result['disk_free_mb'] < 500:
+            result['status'] = 'warning'
+            result['disk_warning'] = '磁盘剩余不足 500MB'
+    except Exception:
+        pass
+    code = 200 if result['status'] == 'ok' else 503
+    return jsonify(result), code
 
 
 # 云打印平台首页（前台）

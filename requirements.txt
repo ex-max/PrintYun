@@ -35,3 +35,5 @@ mysql-connector==2.2.9
 gunicorn
 python-dotenv
 openpyxl==3.1.5
+waitress
+Flask-Limiter

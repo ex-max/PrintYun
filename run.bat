@@ -6,7 +6,7 @@ REM ======================================================
 REM  云打印项目一键启动脚本
 REM  - 自动激活 venv
 REM  - .env 由 python-dotenv 自动加载（Flask 启动时）
-REM  - 启动 Flask 主进程
+REM  - 使用 waitress 多线程 WSGI 服务器（4 线程）
 REM ======================================================
 
 cd /d "%~dp0"
@@ -30,6 +30,13 @@ if errorlevel 1 (
     pip install python-dotenv
 )
 
+REM 确保 waitress 已安装
+python -c "import waitress" 2>nul
+if errorlevel 1 (
+    echo [*] 安装 waitress ...
+    pip install waitress
+)
+
 if not exist ".env" (
     echo [!] 未找到 .env 文件
     echo     请复制 .env.example 为 .env 并填入真实配置
@@ -37,9 +44,9 @@ if not exist ".env" (
     exit /b 1
 )
 
-echo [OK] 正在启动 Flask ...
+echo [OK] 正在启动 Flask (waitress, 4 线程) ...
 echo.
-flask run --host=0.0.0.0 --port=8001
+python -c "from waitress import serve; from app import app; print('Serving on http://0.0.0.0:8001'); serve(app, host='0.0.0.0', port=8001, threads=4)"
 
 endlocal
 pause

@@ -211,6 +211,77 @@
     .pc-table th, .pc-table td { padding: 10px 8px; font-size: 12px; }
     .pc-table .file-name { max-width: 120px; }
 }
+/* 分页 */
+.pc-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 20px 16px;
+    flex-wrap: wrap;
+}
+.pc-pagination a, .pc-pagination span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #555;
+    text-decoration: none;
+    transition: all .2s;
+    border: 1px solid #e5e5e5;
+    background: #fff;
+}
+.pc-pagination a:hover { border-color: #1E9FFF; color: #1E9FFF; }
+.pc-pagination .pg-current {
+    background: #1E9FFF;
+    color: #fff;
+    border-color: #1E9FFF;
+    font-weight: 500;
+}
+.pc-pagination .pg-disabled {
+    color: #ccc;
+    border-color: #eee;
+    cursor: default;
+    pointer-events: none;
+}
+.pc-pagination .pg-info {
+    border: none;
+    color: #888;
+    font-size: 12px;
+    background: none;
+}
+
+/* Toast 通知 */
+.pc-toast-container {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.pc-toast {
+    background: #fff;
+    border-left: 4px solid #1E9FFF;
+    box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    padding: 14px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #333;
+    animation: toastIn .3s ease;
+    max-width: 340px;
+}
+.pc-toast.done { border-color: #52C41A; }
+.pc-toast.failed { border-color: #F53F3F; }
+@keyframes toastIn {
+    from { opacity: 0; transform: translateX(60px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
 {% endblock %}
 
 {% block body %}
@@ -298,7 +369,7 @@
                 {% else %}{% set way = '双面短边' %}{% endif %}
                 {% set is_pdf = o.File_Dir and o.File_Dir.lower().endswith('.pdf') %}
                 {% set is_img = o.File_Dir and (o.File_Dir.lower().endswith('.jpg') or o.File_Dir.lower().endswith('.jpeg') or o.File_Dir.lower().endswith('.png')) %}
-                <tr>
+                <tr data-tn="{{ o.Trade_Number }}" data-status="{{ o.Print_Status }}">
                     <td>
                         <div class="trade-no">{{ o.Trade_Number }}</div>
                         <span class="file-name" title="{{ o.File_Name }}">{{ o.File_Name }}</span>
@@ -379,5 +450,89 @@
         {% endif %}
     </div>
 
+    {# ========== C. 分页 ========== #}
+    {% if pagination and pagination.pages > 1 %}
+    <div class="pc-pagination">
+        <span class="pg-info">共 {{ pagination.total }} 条</span>
+        {% if pagination.has_prev %}
+            <a href="{{ url_for('login.me', status=active_status, page=pagination.prev_num) }}">« 上页</a>
+        {% else %}
+            <span class="pg-disabled">« 上页</span>
+        {% endif %}
+
+        {% for p in pagination.iter_pages(left_edge=1, left_current=2, right_current=2, right_edge=1) %}
+            {% if p %}
+                {% if p == pagination.page %}
+                    <span class="pg-current">{{ p }}</span>
+                {% else %}
+                    <a href="{{ url_for('login.me', status=active_status, page=p) }}">{{ p }}</a>
+                {% endif %}
+            {% else %}
+                <span class="pg-disabled">…</span>
+            {% endif %}
+        {% endfor %}
+
+        {% if pagination.has_next %}
+            <a href="{{ url_for('login.me', status=active_status, page=pagination.next_num) }}">下页 »</a>
+        {% else %}
+            <span class="pg-disabled">下页 »</span>
+        {% endif %}
+        <span class="pg-info">{{ pagination.page }}/{{ pagination.pages }}</span>
+    </div>
+    {% endif %}
+
 </div>
+{% endblock %}
+
+{% block extra_script %}
+<div class="pc-toast-container" id="toastBox"></div>
+<script>
+(function() {
+    var POLL_MS = 15000;
+    var STATUS_CLASS = {
+        '-2': 'pc-status-cancelled', '-1': 'pc-status-failed',
+        '0': 'pc-status-unpaid', '1': 'pc-status-paid',
+        '2': 'pc-status-printing', '3': 'pc-status-done'
+    };
+    var STATUS_TOAST_TYPE = {'3': 'done', '-1': 'failed', '-2': 'failed'};
+
+    function showToast(msg, type) {
+        var box = document.getElementById('toastBox');
+        var el = document.createElement('div');
+        el.className = 'pc-toast' + (type ? ' ' + type : '');
+        el.textContent = msg;
+        box.appendChild(el);
+        setTimeout(function() { el.remove(); }, 5000);
+    }
+
+    function poll() {
+        var rows = document.querySelectorAll('tr[data-tn]');
+        if (!rows.length) return;
+        var ids = [], statuses = [];
+        rows.forEach(function(r) {
+            ids.push(r.getAttribute('data-tn'));
+            statuses.push(r.getAttribute('data-status'));
+        });
+        fetch('{{ url_for("login.me_status_check") }}?ids=' + ids.join(',') + '&statuses=' + statuses.join(','))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.changes || !data.changes.length) return;
+                data.changes.forEach(function(c) {
+                    var row = document.querySelector('tr[data-tn="' + c.trade_number + '"]');
+                    if (!row) return;
+                    row.setAttribute('data-status', c.new_status);
+                    var badge = row.querySelector('.pc-status');
+                    if (badge) {
+                        badge.className = 'pc-status ' + (STATUS_CLASS[String(c.new_status)] || 'pc-status-paid');
+                        badge.textContent = c.label;
+                    }
+                    showToast('\u8ba2\u5355 ' + c.trade_number + ' \u72b6\u6001\u53d8\u66f4\uff1a' + c.label,
+                              STATUS_TOAST_TYPE[String(c.new_status)] || '');
+                });
+            })
+            .catch(function() {});
+    }
+    setInterval(poll, POLL_MS);
+})();
+</script>
 {% endblock %}

@@ -6,8 +6,8 @@
     <title>Pay</title>
 
 
-    <link rel="stylesheet" type="text/css" href="../../static/layui/css/layui.css"/>
-    <script type="text/javascript" src="../../static/layui/jquery-1.9.1.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdn.staticfile.net/layui/2.9.21/css/layui.min.css"/>
+    <script type="text/javascript" src="https://cdn.staticfile.net/jquery/1.9.1/jquery.min.js"></script>
 
 </head>
 
@@ -28,7 +28,7 @@
         <thead>
 
         <tr>
-            <th>订单号</th>
+            <th>订单�?/th>
             <th>{{ data["tradeid"] }}</th>
             <input id="tradeid" value="{{ data["tradeid"] }}" type="hidden">
         </tr>
@@ -66,7 +66,7 @@
         </tr>
 
         <tr>
-            <td>打印点</td>
+            <td>打印�?/td>
             <td><b>{{ data["print_place"] }}</b></td>
         </tr>
 
@@ -80,8 +80,8 @@
                             <input type="hidden" name="tradeid" value="{{ data["tradeid"] }}">
                             <input type="hidden" name='tel_num' value="{{ data["user_tel"] }}">
                             <input type="hidden" name="print_name" value="{{ data["printfile"] }}">
-                            <input type="submit" class="layui-btn" value="支付宝支付">
-                            <button id='vx_pay' data-method="wechat" class="layui-btn">微 信 支 付</button>
+                            <input type="submit" class="layui-btn" value="支付宝支�?>
+                            <button id='vx_pay' data-method="wechat" class="layui-btn">�?�?�?�?/button>
                             {% if data["new_filename"][-3:] == "pdf" %}
                                 <a class="layui-btn layui-btn-green" href='#'
                                    onclick="window.open('../admin/look_pdf/viewer.html?file=/static/Upload_Files/{{ data['new_filename'] }}','PDF','width:50%;height:50%;top:100;left:100;');">预览</a>
@@ -97,8 +97,8 @@
                             <input type="hidden" name="tradeid" value="{{ data["tradeid"] }}">
                             <input type="hidden" name='tel_num' value="{{ data["user_tel"] }}">
                             <input type="hidden" name="print_name" value="{{ data["printfile"] }}">
-                            <input type="submit" class="layui-btn" value="支付宝支付">
-                            <button id='vx_pay' data-method="wechat" class="layui-btn">微 信 支 付</button>
+                            <input type="submit" class="layui-btn" value="支付宝支�?>
+                            <button id='vx_pay' data-method="wechat" class="layui-btn">�?�?�?�?/button>
                             {% if data["new_filename"][-3:] == "pdf" %}
                                 <a class="layui-btn layui-btn-green" href='#'
                                    onclick="window.open('../admin/look_pdf/viewer.html?file=/static/Upload_Files/{{ data['new_filename'] }}','PDF','width:50%;height:50%;top:100;left:100;');">预览</a>
@@ -126,25 +126,43 @@
 </div>
 
 
-<script type="text/javascript" src="../../static/layui/layui.js"></script>
+<script type="text/javascript" src="https://cdn.staticfile.net/layui/2.9.21/layui.min.js"></script>
 <script>
-    layui.use('layer', function () { //独立版的layer无需执行这一句
-        var $ = layui.jquery, layer = layui.layer; //独立版的layer无需执行这一句
+    layui.use('layer', function () {
+        var $ = layui.jquery, layer = layui.layer;
+        var _pollTimer = null;
 
-        //触发事件
+        function _startPolling(aoid) {
+            // �?2 秒自动查询支付状态，成功后自动跳�?
+            _pollTimer = setInterval(function () {
+                $.ajax({
+                    url: '/jsons/query_status',
+                    dataType: 'json',
+                    type: 'post',
+                    data: { 'aoid': aoid },
+                    success: function (res) {
+                        if (res.quey_status === 'success') {
+                            clearInterval(_pollTimer);
+                            layer.closeAll();
+                            layer.msg('支付成功，正在跳�?..', { icon: 1, time: 1500 });
+                            setTimeout(function () {
+                                window.location.href = '/login/me';
+                            }, 1500);
+                        }
+                    }
+                });
+            }, 2000);
+        }
+
         var active = {
-            setTop: function () {
-                var that = this;
-
-            }
-
-            , wechat: function () {
+            wechat: function () {
                 $(function () {
                     $('#vx_pay').click(function () {
+                        var idx = layer.load(1, { shade: [0.3, '#000'] });
                         $.ajax({
                             url: '/jsons/js_pay',
                             dataType: 'json',
-                            type: "post",
+                            type: 'post',
                             data: {
                                 'name': '{{ data['printfile'] }}',
                                 'pay_type': 'native',
@@ -153,92 +171,53 @@
                                 'tradeid': '{{ data["tradeid"] }}'
                             },
                             success: function (data) {
+                                layer.close(idx);
                                 layer.open({
-                                    type: 1
-                                    ,
-                                    title: '微信支付'//不显示标题栏
-                                    ,
-                                    closeBtn: 2
-                                    ,
-                                    area: '350px;'
-                                    ,
-                                    shade: 0.5
-                                    ,
-                                    anim: 1
-                                    ,
-                                    id: 'wechat_pay' //设定一个id，防止重复弹出
-                                    ,
-                                    btn: ['重下订单', '确认支付']
-                                    ,
-                                    btnAlign: 'c'
-                                    ,
-                                    moveType: 1 //拖拽模式，0或者1
-                                    ,
-                                    content: "<div style='padding: 50px; line-height: 22px; background-color: #393D49; color: #fff; font-weight: 300;'><img style='width: 90%;height: 90%;' src='../../static/pay_qrcode/" + data.url + ".jpg'></div>"
-                                    ,
+                                    type: 1,
+                                    title: '微信支付',
+                                    closeBtn: 2,
+                                    area: '350px',
+                                    shade: 0.5,
+                                    anim: 1,
+                                    id: 'wechat_pay',
+                                    btn: ['返回重新下单'],
+                                    btnAlign: 'c',
+                                    moveType: 1,
+                                    content: '<div style="padding:30px; text-align:center; background:#393D49; color:#fff;">'
+                                        + '<img style="width:85%;border-radius:8px;" src="../../static/pay_qrcode/' + data.url + '.jpg">'
+                                        + '<p style="margin:14px 0 0; font-size:14px; opacity:.85;">请用微信扫码支付，支付成功后自动跳转</p>'
+                                        + '<div style="margin-top:12px;"><i class="layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop" style="font-size:20px;"></i> <span style="font-size:13px;">等待支付�?..</span></div>'
+                                        + '</div>',
                                     success: function (layero) {
-                                        var btn0 = layero.find('.layui-layer-btn');
-                                        btn0.find('.layui-layer-btn0').attr({
-                                            href: '/admin/select'
-                                            , target: '_blank'
+                                        // 弹窗打开后立即开始轮�?
+                                        _startPolling(data.aoid);
+                                        layero.find('.layui-layer-btn0').attr({
+                                            href: '/printer/select'
                                         });
-
-                                        var btn1 = layero.find('.layui-layer-btn');
-                                        btn1.find('.layui-layer-btn1').click(function () {
-                                                $.ajax({
-                                                        url: '/jsons/query_status',
-                                                        dataType: 'json',
-                                                        type: "post",
-                                                        data: {
-                                                            'aoid': data.aoid
-                                                        },
-                                                        success: function (quey_statu) {
-                                                            if (quey_statu.quey_status == 'success') {
-                                                                window.location.href = "/printer/select";
-                                                                alert('支付成功,即将跳转到上传页面');
-                                                            } else {
-                                                                alert('支付失败')
-                                                            }
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                        )
+                                    },
+                                    cancel: function () {
+                                        if (_pollTimer) clearInterval(_pollTimer);
+                                    },
+                                    end: function () {
+                                        if (_pollTimer) clearInterval(_pollTimer);
                                     }
-                                })
-                            }, //微信支付弹窗
-                        })
-                    })
-                })
-            }
-            , offset:
-
-                function (othis) {
-                    var type = othis.data('type')
-                        , text = othis.text();
-
-                    layer.open({
-                        type: 1
-                        , offset: type
-                        , id: 'layerDemo' + type //防止重复弹出
-                        , content: '<div style="padding: 20px 100px;">' + text + '</div>'
-                        , btn: '关闭全部'
-                        , btnAlign: 'c' //按钮居中
-                        , shade: 0 //不显示遮罩
-                        , yes: function () {
-                            layer.closeAll();
-                        }
+                                });
+                            },
+                            error: function () {
+                                layer.close(idx);
+                                layer.msg('支付请求失败，请重试', { icon: 2 });
+                            }
+                        });
                     });
-                }
+                });
+            }
         };
 
         $('#layerDemo .layui-btn').on('click', function () {
             var othis = $(this), method = othis.data('method');
             active[method] ? active[method].call(this, othis) : '';
         });
-
-    })
-    ;
+    });
 </script>
 
 

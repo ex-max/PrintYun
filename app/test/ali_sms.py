@@ -19,6 +19,9 @@
 import os
 import ssl
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 # ---- TLS 1.2 兼容补丁 --------------------------------------------------
 # 背景：本机若开了 Clash/V2Ray TUN 代理，对 TLS 1.3 的 ClientHello 可能
@@ -88,7 +91,7 @@ def _get_client():
         )
         _client = Dypnsapi20170525Client(config)
     except Exception as e:
-        print(f'[ali_sms] 初始化 Dypnsapi 客户端失败: {e}')
+        logger.error('初始化 Dypnsapi 客户端失败: %s', e)
         _client = None
     return _client
 
@@ -163,7 +166,7 @@ def verify_code(phone_number, form_code):
     try:
         resp = client.check_sms_verify_code_with_options(req, util_models.RuntimeOptions())
     except Exception as e:
-        print(f'[ali_sms] 校验异常: {e}')
+        logger.warning('验证码校验异常: %s', e)
         return False
 
     body = getattr(resp, 'body', None)

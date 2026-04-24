@@ -1,5 +1,5 @@
 from flask import Blueprint, request, redirect, url_for, jsonify
-import datetime, json, requests, qrcode, time, os
+import datetime, json, requests, qrcode, time, os, logging
 from app.utils import query_status, sign
 from flask_login import login_required, current_user
 from app.models import User, Order, OrderLog, db
@@ -9,6 +9,8 @@ jsons = Blueprint(
     'jsons',
     __name__
 )
+
+logger = logging.getLogger(__name__)
 
 _XORPAY_SECRET = os.environ.get('XORPAY_SECRET', '')
 
@@ -44,12 +46,12 @@ def js_pay():
             _XORPAY_SECRET,
         )
         # 访问网站并传递参数
-        print('\n请求数据: ', pay_data)
+        logger.info('请求数据: %s', pay_data)
         resp = requests.post('https://xorpay.com/api/pay/xxxx', data=pay_data)  #微信支付使用xorpay
         if resp.status_code == 200:
             json_resp = json.loads(resp.text)
-            print('\n得到的数据：', json_resp)
-            print('\n得到的数据：', json_resp['info']['qr'])
+            logger.info('得到的数据：%s', json_resp)
+            logger.debug('二维码链接：%s', json_resp['info']['qr'])
             img = qrcode.make(json_resp['info']['qr'])
             Image.Image.save(img, 'app/static/pay_qrcode/' + data['pay_type']+data['tradeid'] + '.jpg')
             return jsonify({'url': data['pay_type']+data['tradeid'], 'aoid': json_resp['aoid']})
@@ -64,23 +66,30 @@ def native_url():
     if request.method == "POST":
         requ = dict(request.form)
         aoid = requ['aoid']
-        time.sleep(3)
         queryStatus = query_status(aoid)
         if queryStatus['status'] in ['payed', 'success']:
-            order = Order.query.filter(Order.Trade_Number == requ['order_id'][6:]).first()
-            # 支付完成后直接进入打印队列（2）
+            order = Order.query.filter(Order.Trade_Number == requ['order_id'][6:]).with_for_update().first()
+            if not order or order.Print_Status != 0:
+                return 'success'  # 幂等：已处理过直接返回
+            # 支付成功 → 状态 1（已支付待打印），由 printer_daemon 领取后改为 2
             old_status = order.Print_Status
-            order.Print_Status = 2
+            order.Print_Status = 1
             db.session.add(order)
             db.session.add(OrderLog(
                 Order_Id=order.Id,
                 Operator_Id=None,
                 Action='paid',
                 From_Status=old_status,
-                To_Status=2,
+                To_Status=1,
                 Note='XORPay 回调确认支付成功',
             ))
             db.session.commit()
+            # 通知 daemon 立即打印
+            try:
+                from worker import conn as redis_conn
+                redis_conn.lpush('print_queue', str(order.Id))
+            except Exception:
+                pass
             return 'success'
         else:
             pass
@@ -128,7 +137,6 @@ def delete_data():
 
 @jsons.route('/query_status', methods=['POST'])
 def query_statu():
-    time.sleep(6)
     if request.method == 'POST':
         quer = request.form
         aoid = quer['aoid']
