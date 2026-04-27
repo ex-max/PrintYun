@@ -1,4 +1,4 @@
-from flask import Flask, Blueprint, render_template, request, flash, session, redirect, url_for
+from flask import Flask, Blueprint, render_template, request, flash, session, redirect, url_for, jsonify
 import json, os, time, random, logging
 from app.models import User, Order, OrderLog, db
 
@@ -181,6 +181,27 @@ def alipayresult1():
 
     return render_template('use_templates/pay_success.html',
                            ok=verified, trade_id=db_trade_no)
+
+
+@cloud_pay.route('/order_status', methods=['GET'])
+def order_status():
+    """浏览器在支付页轮询订单状态。只暴露最少信息。
+
+    因为浏览器支付完成后支付宝沙箱 return_url 不一定触发，
+    前端轮询这个接口，一旦 Print_Status >= 1 就自动跳转。
+    """
+    trade_number = (request.args.get('trade_number') or '').strip()
+    if not trade_number:
+        return jsonify({'error': '缺少 trade_number'}), 400
+    order = Order.query.filter_by(Trade_Number=trade_number).first()
+    if not order:
+        return jsonify({'error': '订单不存在'}), 404
+    status = int(order.Print_Status or 0)
+    return jsonify({
+        'status': status,
+        'paid': status >= 1,
+        'trade_number': trade_number,
+    })
 
 
 # 支付宝异步通知接口

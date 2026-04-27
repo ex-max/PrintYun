@@ -37,7 +37,7 @@
                 <tr>
                     <td>权限</td>
                     {% if user.Role == 'admin' %}
-                        <td>管理�?/td>
+                        <td>管理员/td>
                     {% endif %}
                     {% if user.Role == 'guest' %}
                         <td>用户</td>
@@ -72,7 +72,7 @@
                     </div>
                 </div>
                 <div class="layui-form-item">
-                    <label class="layui-form-label">重复密码�?/label>
+                    <label class="layui-form-label">重复密码</label>
                     <div class="layui-input-block">
                         {{ form.password2(placeholder="请再一次输入您的新密码", autocomplete="off", class="layui-input") }}
                         {% for i in form.password2.errors %}

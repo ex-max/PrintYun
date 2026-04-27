@@ -153,20 +153,22 @@ def pay_url():
 
     # 调用支付宝生成支付链接
     try:
-        from app.test.ali_pay import get_alipay, _make_alipay_trade_no, _callback_base, _ALIPAY_GATEWAY
+        from app.test.ali_pay import get_alipay, _ALIPAY_GATEWAY
         alipay = get_alipay()
         if alipay is None:
             return jsonify({'error': '支付宝未配置'}), 503
 
-        base = os.environ.get('PUBLIC_BASE_URL', 'http://localhost:5000').rstrip('/')
-        alipay_trade_no = _make_alipay_trade_no(trade_number)
+        base = os.environ.get('PUBLIC_BASE_URL', 'http://localhost:8001').rstrip('/')
+        # 本地打印每个订单号本身就是唯一的（next_trade_number 保证），
+        # 直接用 Trade_Number 作为 out_trade_no，check_status 才能按同一 ID 反查
+        alipay_trade_no = trade_number
 
         # 生成电脑端支付链接（扫码付）
         order_string = alipay.api_alipay_trade_precreate(
             out_trade_no=alipay_trade_no,
             total_amount=cost,
             subject=f'打印费-{order.File_Name}',
-            notify_url=base + '/cloud_pay/native_alipay',
+            notify_url=base + '/cloud_pay/native',
         )
         # precreate 返回的是一个字典，里面有 qr_code
         qr_code = order_string.get('qr_code', '') if isinstance(order_string, dict) else ''
@@ -178,7 +180,7 @@ def pay_url():
                 total_amount=cost,
                 subject=f'打印费-{order.File_Name}',
                 return_url=base + '/cloud_pay/alipayresult1',
-                notify_url=base + '/cloud_pay/native_alipay',
+                notify_url=base + '/cloud_pay/native',
             )
             pay_link = _ALIPAY_GATEWAY + '?' + order_string2
             return jsonify({
@@ -214,19 +216,22 @@ def check_status():
 
     status = int(order.Print_Status or 0)
 
-    # ★ 如果数据库显示未支付，主动查询支付宝
-    if status == 0:
+    # ★ 如果数据库显示未支付或打印失败，主动查询支付宝（不依赖异步回调）
+    # pay_url 里用 Trade_Number 直接作为 out_trade_no，这里用相同值去查
+    # 对本地打印订单：daemon 可能抢先领取并因无文件而设为 -1，
+    # 此时弹窗仍在等待，需要重新确认支付状态
+    if status in (0, -1):
         try:
-            from app.test.ali_pay import get_alipay, _make_alipay_trade_no
+            from app.test.ali_pay import get_alipay
             alipay = get_alipay()
             if alipay:
-                alipay_trade_no = _make_alipay_trade_no(trade_number)
-                result = alipay.api_alipay_trade_query(out_trade_no=alipay_trade_no)
+                result = alipay.api_alipay_trade_query(out_trade_no=trade_number)
                 trade_status = ''
                 if isinstance(result, dict):
                     trade_status = result.get('trade_status', '')
                 elif isinstance(result, str):
                     trade_status = result
+                logger.info('支付宝查询 %s -> trade_status=%r', trade_number, trade_status)
 
                 if trade_status in ('TRADE_SUCCESS', 'TRADE_FINISHED'):
                     # 支付宝确认已付款 → 更新数据库
@@ -269,3 +274,64 @@ def update_status():
     db.session.commit()
     logger.info('本地打印订单 %s 状态更新为 %s', trade_number, new_status)
     return jsonify({'ok': True})
+
+
+@local_print.route('/claim_web_order', methods=['POST'])
+def claim_web_order():
+    """桌面端从 Redis print_queue 拿到订单 Id 后，原子领取并返回完整打印参数。
+
+    只能领取 Print_Status == 1（已支付待打印）的订单，成功后状态原子改为 2（打印中）。
+    """
+    if not _check_key():
+        return jsonify({'error': '鉴权失败'}), 403
+
+    data = request.get_json(force=True, silent=True) or {}
+    try:
+        oid = int(data.get('id') or 0)
+    except (TypeError, ValueError):
+        oid = 0
+    if oid <= 0:
+        return jsonify({'error': '缺少 id'}), 400
+
+    order = Order.query.get(oid)
+    if not order:
+        return jsonify({'error': '订单不存在'}), 404
+
+    # 原子：Print_Status 1 -> 2，防止并发重复消费
+    stmt = db.text(
+        "UPDATE `Order` SET Print_Status = 2 WHERE Id = :oid AND Print_Status = 1"
+    )
+    result = db.session.execute(stmt, {'oid': oid})
+    db.session.commit()
+    if result.rowcount != 1:
+        return jsonify({
+            'error': '订单状态异常或已被领取',
+            'current_status': int(order.Print_Status or 0),
+        }), 409
+
+    db.session.refresh(order)
+
+    # 计算 PDF 文件绝对路径（File_Dir 是相对文件名）
+    upload_root = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        'app', 'static', 'Upload_Files',
+    )
+    pdf_path = os.path.join(upload_root, order.File_Dir or '')
+
+    logger.info('Web 订单被领取打印: #%s %s -> Print_Status=2',
+                order.Id, order.Trade_Number)
+
+    return jsonify({
+        'id': order.Id,
+        'trade_number': order.Trade_Number,
+        'file_dir': order.File_Dir or '',
+        'file_name': order.File_Name or '',
+        'pdf_path': pdf_path,
+        'copies': int(order.Print_Copies or 1),
+        'color': order.Print_Colour or 'CMYGray',
+        'duplex': order.Print_way or 'one-sided',
+        'paper': order.Print_size or 'A4',
+        'direction': str(order.Print_Direction or ''),
+        'pages': int(order.Print_pages or 0),
+        'money': float(order.Print_Money or 0),
+    })

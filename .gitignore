@@ -20,3 +20,28 @@ env/
 # 系统 / 遗留
 cookies.txt
 *.log
+
+# Redis
+dump.rdb
+
+# 日志目录
+logs/
+
+# cpolar
+cpolar.log*
+tunnels.json
+
+# 用户上传文件（运行时生成）
+app/static/Upload_Files/*
+!app/static/Upload_Files/.gitkeep
+app/static/pay_qrcode/*
+!app/static/pay_qrcode/.gitkeep
+
+# 临时测试数据库
+instance/*.db
+
+# 第三方工具
+.workbuddy/
+
+# 备份文件
+*.bak

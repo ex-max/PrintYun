@@ -1,23 +1,22 @@
 @echo off
-chcp 65001 >nul
 setlocal
 
 REM ======================================================
-REM  Redis é˜Ÿåˆ—è½¬ PDF worker å¯åŠ¨è„šæœ¬
-REM  éœ€è¦ä¸ run.bat åˆ†å¼€å¼€ä¸€ä¸ª cmd çª—å£æ‰§è¡Œ
+REM  Redis ¶ÓÁĞ×ª PDF worker Æô¶¯½Å±¾
+REM  ĞèÒªÓë run.bat ·Ö¿ª¿ªÒ»¸ö cmd ´°¿ÚÖ´ĞĞ
 REM ======================================================
 
 cd /d "%~dp0"
 
 if not exist "venv\Scripts\activate.bat" (
-    echo [x] æœªæ‰¾åˆ° venv
+    echo [x] Î´ÕÒµ½ venv
     pause
     exit /b 1
 )
 
 call venv\Scripts\activate.bat
 
-echo [OK] æ­£åœ¨å¯åŠ¨ PDF è½¬æ¢ worker ...
+echo [OK] ÕıÔÚÆô¶¯ PDF ×ª»» worker ...
 echo.
 python worker.py
 

@@ -147,10 +147,15 @@ def send_to_printer(order):
 
 
 def claim_one_order():
-    """原子地把一笔 Print_Status=1 的订单改成 2，返回领到的订单对象。"""
+    """原子地把一笔 Print_Status=1 的订单改成 2，返回领到的订单对象。
+
+    注意：跳过 Print_Place='local' 的本地打印订单，
+    它们没有上传文件（File_Dir 为空），由 local_printer 服务自行打印。
+    """
     order = (
         Order.query
         .filter(Order.Print_Status == STATUS_PAID)
+        .filter(Order.Print_Place != 'local')
         .order_by(Order.Id)
         .first()
     )

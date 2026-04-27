@@ -28,7 +28,7 @@
         <thead>
 
         <tr>
-            <th>订单�?/th>
+            <th>订单号</th>
             <th>{{ data["tradeid"] }}</th>
             <input id="tradeid" value="{{ data["tradeid"] }}" type="hidden">
         </tr>
@@ -62,7 +62,7 @@
         </tr>
 
         <tr>
-            <td>打印�?/td>
+            <td>打印费</td>
             <td><b>{{ data["print_place"] }}</b></td>
         </tr>
 
@@ -72,8 +72,8 @@
                 <div class="site-demo-button" id="layerDemo"
                      style="margin-bottom: 0; width: 216px; margin: 0; white-space:nowrap;">
 
-                    <button id='vx_pay' data-method="wechat" class="layui-btn layui-bg-weixin">�?�?�?�?/button>
-                    <button id='al_pay' data-method="alipay" class="layui-btn layui-btn-normal">支付宝支�?/button>
+                    <button id='vx_pay' data-method="wechat" class="layui-btn layui-bg-weixin">微信支付/button>
+                    <button id='al_pay' data-method="alipay" class="layui-btn layui-btn-normal">支付宝支付/button>
                     {% if data['new_filename'][-3:] == "pdf" %}
                         <a class="layui-btn layui-btn-green" href='#'
                            onclick="window.open('../admin/look_pdf/viewer.html?file=../../static/Upload_Files/{{ data['new_filename'] }}','PDF','width:50%;height:50%;top:100;left:100;');">预览</a>
@@ -95,8 +95,8 @@
 
 <script type="text/javascript" src="https://cdn.staticfile.net/layui/2.9.21/layui.min.js"></script>
 <script>
-    layui.use('layer', function () { //独立版的layer无需执行这一�?
-        var $ = layui.jquery, layer = layui.layer; //独立版的layer无需执行这一�?
+    layui.use('layer', function () { //独立版的layer无需执行这一步
+        var $ = layui.jquery, layer = layui.layer; //独立版的layer无需执行这一步
 
         //触发事件
         var active = {
@@ -133,13 +133,13 @@
                                     ,
                                     anim: 1
                                     ,
-                                    id: 'wechat_pay' //设定一个id，防止重复弹�?
+                                    id: 'wechat_pay' //设定一个id，防止重复弹出
                                     ,
                                     btn: ['重下订单', '确认支付']
                                     ,
                                     btnAlign: 'c'
                                     ,
-                                    moveType: 1 //拖拽模式�?或�?
+                                    moveType: 1 //拖拽模式开或关
                                     ,
                                     content: "<div style='padding: 50px; line-height: 22px; background-color: #393D49; color: #fff; font-weight: 300;'><img style='width: 90%;height: 90%;' src='../../static/pay_qrcode/" + data.url + ".jpg'></div>"
                                     ,
@@ -162,7 +162,7 @@
                                                     success: function (quey_statu) {
                                                         if (quey_statu.quey_status == 'success') {
                                                             window.location.href = "/printer/select";
-                                                            alert('支付成功,即将跳转到上传页�?);
+                                                            alert('支付成功,即将跳转到上传页面);
                                                         } else {
                                                             alert('支付失败')
                                                         }
@@ -178,7 +178,7 @@
                     })
                 })
             },
-            // 支付宝支付弹�?
+            // 支付宝支付弹窗
             alipay: function () {
                 $(function () {
                     $('#al_pay').click(function () {
@@ -197,7 +197,7 @@
                                 layer.open({
                                     type: 1
                                     ,
-                                    title: '支付宝支�?//不显示标题栏
+                                    title: '支付宝支付//不显示标题栏
                                     ,
                                     closeBtn: 2
                                     ,
@@ -207,13 +207,13 @@
                                     ,
                                     anim: 1
                                     ,
-                                    id: 'alipay_pay' //设定一个id，防止重复弹�?
+                                    id: 'alipay_pay' //设定一个id，防止重复弹出
                                     ,
                                     btn: ['重下订单', '确认支付']
                                     ,
                                     btnAlign: 'c'
                                     ,
-                                    moveType: 1 //拖拽模式�?或�?
+                                    moveType: 1 //拖拽模式开或关
                                     ,
                                     content: "<div style='padding: 50px; line-height: 22px; background-color: #393D49; color: #fff; font-weight: 300;'><img style='width: 90%;height: 90%;' src='../../static/pay_qrcode/" + data.url + ".jpg'></div>"
                                     ,
@@ -235,7 +235,7 @@
                                                     success: function (quey_statu) {
                                                         if (quey_statu.quey_status == 'success') {
                                                             window.location.href = "/printer/select";
-                                                            alert('支付成功,即将跳转到上传页�?);
+                                                            alert('支付成功,即将跳转到上传页面);
                                                         } else {
                                                             alert('支付失败')
                                                         }
@@ -267,7 +267,7 @@
                         , content: '<div style="padding: 20px 100px;">' + text + '</div>'
                         , btn: '关闭全部'
                         , btnAlign: 'c' //按钮居中
-                        , shade: 0 //不显示遮�?
+                        , shade: 0 //不显示遮罩
                         , yes: function () {
                             layer.closeAll();
                         }
