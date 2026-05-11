@@ -1,0 +1,94 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 用户信息栏 -->
+  <view class="user-bar card">
+    <view class="user-info" bindtap="goToUserCenter">
+      <image class="user-avatar" src="{{userInfo.avatarUrl || '/assets/icons/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="user-text">
+        <view class="user-greeting">{{isLoggedIn ? '您好，' + (userInfo.nickname || '微信用户') : '点击登录'}}</view>
+        <view class="user-phone" wx:if="{{userInfo.phone}}">{{userInfo.phone}}</view>
+      </view>
+    </view>
+    <image class="arrow-icon" src="/assets/icons/arrow-right.png"></image>
+  </view>
+
+  <!-- 主入口 -->
+  <view class="main-action card">
+    <button class="btn-print" bindtap="goToUpload">
+      <image class="print-icon" src="/assets/icons/print-white.png"></image>
+      <view class="print-text">
+        <view class="print-title">我要打印</view>
+        <view class="print-desc">上传文件 立即下单</view>
+      </view>
+    </button>
+  </view>
+
+  <!-- 快捷功能 -->
+  <view class="quick-actions">
+    <view class="quick-item" bindtap="goToOrders">
+      <image class="quick-icon" src="/assets/icons/order.png"></image>
+      <view class="quick-text">我的订单</view>
+    </view>
+    <view class="quick-item" bindtap="goToIdCard">
+      <image class="quick-icon" src="/assets/icons/idcard.png"></image>
+      <view class="quick-text">身份证打印</view>
+    </view>
+    <view class="quick-item" bindtap="goToScan">
+      <image class="quick-icon" src="/assets/icons/scan.png"></image>
+      <view class="quick-text">扫码取件</view>
+    </view>
+  </view>
+
+  <!-- 打印点信息 -->
+  <view class="print-place card" wx:if="{{printPlace}}">
+    <view class="place-header">
+      <image class="place-icon" src="/assets/icons/location.png"></image>
+      <view class="place-name">{{printPlace.name}}</view>
+    </view>
+    <view class="place-info">
+      <view class="place-row">
+        <text class="place-label">地址：</text>
+        <text class="place-value">{{printPlace.address}}</text>
+      </view>
+      <view class="place-row" wx:if="{{printPlace.businessHours}}">
+        <text class="place-label">营业时间：</text>
+        <text class="place-value">{{printPlace.businessHours}}</text>
+      </view>
+      <view class="place-row" wx:if="{{printPlace.phone}}">
+        <text class="place-label">电话：</text>
+        <text class="place-value phone-link" bindtap="makePhoneCall">{{printPlace.phone}}</text>
+      </view>
+    </view>
+    <view class="place-actions">
+      <button class="btn-nav" bindtap="openLocation">
+        <image class="nav-icon" src="/assets/icons/navigation.png"></image>
+        导航前往
+      </button>
+    </view>
+  </view>
+
+  <!-- 价格说明 -->
+  <view class="price-info card">
+    <view class="price-header">
+      <image class="price-icon" src="/assets/icons/price.png"></image>
+      <text class="price-title">价格说明</text>
+    </view>
+    <view class="price-table">
+      <view class="price-row price-header-row">
+        <text class="price-cell">颜色</text>
+        <text class="price-cell">单面</text>
+        <text class="price-cell">双面</text>
+      </view>
+      <view class="price-row">
+        <text class="price-cell">黑白</text>
+        <text class="price-cell price-value">0.30元/页</text>
+        <text class="price-cell price-value">0.50元/页</text>
+      </view>
+      <view class="price-row">
+        <text class="price-cell">彩色</text>
+        <text class="price-cell price-value">1.00元/页</text>
+        <text class="price-cell price-value">1.70元/页</text>
+      </view>
+    </view>
+  </view>
+</view>

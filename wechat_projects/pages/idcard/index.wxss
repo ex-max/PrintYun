@@ -1,0 +1,236 @@
+/* pages/idcard/index.wxss */
+
+.container {
+  padding: 30rpx;
+  padding-bottom: 200rpx;
+  background: #F5F5F5;
+  min-height: 100vh;
+}
+
+.tip-card {
+  display: flex;
+  align-items: flex-start;
+  background: #FFFBE6;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 30rpx;
+}
+
+.tip-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 16rpx;
+  margin-top: 4rpx;
+}
+
+.tip-text {
+  flex: 1;
+  font-size: 26rpx;
+  color: #8C8C8C;
+  line-height: 1.6;
+}
+
+/* 身份证上传区 */
+.idcard-section {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.idcard-item {
+  flex: 1;
+}
+
+.idcard-label {
+  font-size: 28rpx;
+  color: #666666;
+  margin-bottom: 16rpx;
+}
+
+.idcard-upload {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  overflow: hidden;
+  aspect-ratio: 85.6 / 54;
+  border: 2rpx dashed #D9D9D9;
+}
+
+.idcard-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.upload-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #FAFAFA;
+}
+
+.upload-icon {
+  width: 60rpx;
+  height: 60rpx;
+  margin-bottom: 16rpx;
+  opacity: 0.5;
+}
+
+.upload-placeholder text {
+  font-size: 26rpx;
+  color: #999999;
+}
+
+/* 表单 */
+.form-section {
+  margin-bottom: 20rpx;
+}
+
+.form-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 24rpx;
+}
+
+.form-group {
+  margin-bottom: 24rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #666666;
+  margin-bottom: 16rpx;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  background: #F5F5F5;
+  border-radius: 12rpx;
+  overflow: hidden;
+  width: 300rpx;
+}
+
+.stepper-btn {
+  width: 80rpx;
+  height: 80rpx;
+  background: #E8F4FD;
+  color: #4A90D9;
+  font-size: 40rpx;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepper-btn::after {
+  border: none;
+}
+
+.stepper-btn[disabled] {
+  color: #CCCCCC;
+  background: #F5F5F5;
+}
+
+.stepper-input {
+  flex: 1;
+  height: 80rpx;
+  text-align: center;
+  font-size: 32rpx;
+  color: #333333;
+  background: transparent;
+}
+
+/* 价格 */
+.price-card {
+  margin-bottom: 20rpx;
+}
+
+.price-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12rpx 0;
+  font-size: 28rpx;
+}
+
+.price-label {
+  color: #666666;
+}
+
+.price-value {
+  color: #333333;
+}
+
+.price-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 16rpx;
+  margin-top: 12rpx;
+  border-top: 1rpx solid #E5E5E5;
+}
+
+.price-amount {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #FF4D4F;
+}
+
+/* 底部栏 */
+.bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 30rpx;
+  background: #FFFFFF;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.08);
+  z-index: 100;
+}
+
+.price-preview {
+  display: flex;
+  align-items: baseline;
+}
+
+.preview-label {
+  font-size: 28rpx;
+  color: #666666;
+  margin-right: 8rpx;
+}
+
+.preview-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #FF4D4F;
+}
+
+.btn-submit {
+  flex: 1;
+  max-width: 400rpx;
+  background: #4A90D9;
+  color: #FFFFFF;
+  font-size: 32rpx;
+  padding: 24rpx 40rpx;
+  border-radius: 12rpx;
+  border: none;
+  margin: 0;
+  margin-left: 30rpx;
+  line-height: normal;
+}
+
+.btn-submit::after {
+  border: none;
+}
+
+.btn-submit[disabled] {
+  background: #CCCCCC;
+}

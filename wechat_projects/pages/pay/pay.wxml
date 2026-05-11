@@ -1,0 +1,62 @@
+<!--pages/pay/pay.wxml-->
+<view class="container">
+  <!-- 订单信息 -->
+  <view class="order-info card">
+    <view class="order-header">
+      <view class="order-number">订单号：{{orderInfo.tradeNumber}}</view>
+      <view class="order-status status-pending">待支付</view>
+    </view>
+    
+    <view class="order-detail">
+      <view class="detail-row">
+        <text class="detail-label">文件名</text>
+        <text class="detail-value">{{orderInfo.fileName}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">打印点</text>
+        <text class="detail-value">{{orderInfo.printPlaceName}}</text>
+      </view>
+      <view class="detail-row">
+        <text class="detail-label">打印参数</text>
+        <text class="detail-value">{{orderInfo.printDesc}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 金额信息 -->
+  <view class="amount-card card">
+    <view class="amount-label">支付金额</view>
+    <view class="amount-value">
+      <text class="amount-currency">¥</text>
+      <text class="amount-number">{{orderInfo.amount}}</text>
+    </view>
+    <view class="amount-detail">
+      共 {{orderInfo.pages}} 页 × {{orderInfo.copies}} 份
+    </view>
+  </view>
+
+  <!-- 倒计时 -->
+  <view class="countdown-card card" wx:if="{{countdown > 0}}">
+    <view class="countdown-text">
+      <image class="countdown-icon" src="/assets/icons/clock.png"></image>
+      <text>支付剩余时间 {{countdownText}}</text>
+    </view>
+  </view>
+
+  <!-- 支付按钮 -->
+  <view class="pay-actions">
+    <button class="btn-pay" bindtap="doPay" disabled="{{paying}}">
+      {{paying ? '支付中...' : '立即支付 ¥' + orderInfo.amount}}
+    </button>
+    <button class="btn-cancel" bindtap="cancelOrder" disabled="{{paying}}">
+      取消订单
+    </button>
+  </view>
+
+  <!-- 提示 -->
+  <view class="tips">
+    <view class="tip-item">• 支付成功后请到店取件</view>
+    <view class="tip-item">• 凭订单号取件：{{orderInfo.tradeNumber}}</view>
+    <view class="tip-item">• 如有问题请联系打印点工作人员</view>
+  </view>
+</view>

@@ -1,0 +1,272 @@
+/* pages/index/index.wxss */
+
+.container {
+  padding: 30rpx;
+  padding-bottom: 200rpx;
+  background: linear-gradient(180deg, #E8F4FD 0%, #F5F5F5 100%);
+  min-height: 100vh;
+}
+
+/* 用户信息栏 */
+.user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #4A90D9 0%, #6BA8E8 100%);
+  padding: 40rpx 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.user-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  border: 4rpx solid rgba(255, 255, 255, 0.3);
+  margin-right: 24rpx;
+}
+
+.user-text {
+  flex: 1;
+}
+
+.user-greeting {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin-bottom: 8rpx;
+}
+
+.user-phone {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.arrow-icon {
+  width: 32rpx;
+  height: 32rpx;
+  opacity: 0.6;
+}
+
+/* 主入口按钮 */
+.main-action {
+  margin-bottom: 30rpx;
+  padding: 0;
+  overflow: hidden;
+}
+
+.btn-print {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #52C41A 0%, #73D13D 100%);
+  color: #FFFFFF;
+  padding: 60rpx 40rpx;
+  border-radius: 0;
+  margin: 0;
+  line-height: normal;
+}
+
+.btn-print::after {
+  border: none;
+}
+
+.print-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 30rpx;
+}
+
+.print-text {
+  text-align: left;
+}
+
+.print-title {
+  font-size: 40rpx;
+  font-weight: 700;
+  margin-bottom: 8rpx;
+}
+
+.print-desc {
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+/* 快捷功能 */
+.quick-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30rpx;
+}
+
+.quick-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  padding: 40rpx 20rpx;
+  margin: 0 8rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.quick-item:first-child {
+  margin-left: 0;
+}
+
+.quick-item:last-child {
+  margin-right: 0;
+}
+
+.quick-icon {
+  width: 56rpx;
+  height: 56rpx;
+  margin-bottom: 16rpx;
+}
+
+.quick-text {
+  font-size: 26rpx;
+  color: #333333;
+}
+
+/* 打印点信息 */
+.print-place {
+  margin-bottom: 30rpx;
+}
+
+.place-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.place-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 16rpx;
+}
+
+.place-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.place-info {
+  padding-left: 56rpx;
+}
+
+.place-row {
+  display: flex;
+  margin-bottom: 12rpx;
+  font-size: 28rpx;
+}
+
+.place-label {
+  color: #999999;
+  width: 140rpx;
+  flex-shrink: 0;
+}
+
+.place-value {
+  color: #666666;
+  flex: 1;
+}
+
+.phone-link {
+  color: #4A90D9;
+  text-decoration: underline;
+}
+
+.place-actions {
+  margin-top: 24rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #E5E5E5;
+}
+
+.btn-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #4A90D9;
+  color: #FFFFFF;
+  font-size: 30rpx;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  border: none;
+  margin: 0;
+  line-height: normal;
+}
+
+.btn-nav::after {
+  border: none;
+}
+
+.nav-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 12rpx;
+}
+
+/* 价格说明 */
+.price-info {
+  margin-bottom: 30rpx;
+}
+
+.price-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.price-icon {
+  width: 40rpx;
+  height: 40rpx;
+  margin-right: 16rpx;
+}
+
+.price-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.price-table {
+  background: #F5F5F5;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+.price-row {
+  display: flex;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #E5E5E5;
+}
+
+.price-row:last-child {
+  border-bottom: none;
+}
+
+.price-header-row {
+  background: #E8F4FD;
+  font-weight: 600;
+  color: #4A90D9;
+}
+
+.price-cell {
+  flex: 1;
+  text-align: center;
+  font-size: 28rpx;
+  color: #666666;
+}
+
+.price-value {
+  color: #FF4D4F;
+  font-weight: 500;
+}

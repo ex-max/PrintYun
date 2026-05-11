@@ -1,0 +1,35 @@
+<!--pages/scan/index.wxml-->
+<view class="container">
+  <view class="scan-area" bindtap="scanCode">
+    <image class="scan-icon" src="/assets/icons/scan-large.png"></image>
+    <view class="scan-text">点击扫描取件码</view>
+    <view class="scan-hint">扫描订单二维码或输入订单号查询</view>
+  </view>
+
+  <view class="divider">
+    <view class="divider-line"></view>
+    <text class="divider-text">或手动输入</text>
+    <view class="divider-line"></view>
+  </view>
+
+  <view class="input-area card">
+    <input class="order-input" placeholder="请输入订单号" value="{{tradeNumber}}" bindinput="onInput" />
+    <button class="btn-query" bindtap="queryOrder" disabled="{{!tradeNumber}}">
+      查询
+    </button>
+  </view>
+
+  <!-- 最近订单 -->
+  <view class="recent-section" wx:if="{{recentOrders.length > 0}}">
+    <view class="section-title">最近订单</view>
+    <view class="recent-list">
+      <view class="recent-item" wx:for="{{recentOrders}}" wx:key="tradeNumber" bindtap="goToDetail" data-tradenum="{{item.tradeNumber}}">
+        <view class="recent-info">
+          <view class="recent-name">{{item.fileName}}</view>
+          <view class="recent-time">{{item.createdAt}}</view>
+        </view>
+        <view class="recent-status {{item.statusClass}}">{{item.statusText}}</view>
+      </view>
+    </view>
+  </view>
+</view>

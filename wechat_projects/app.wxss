@@ -1,0 +1,292 @@
+/* app.wxss - 全局样式 */
+
+/* 引入 WeUI 样式库 */
+@import './styles/weui.wxss';
+
+/* 全局变量 */
+page {
+  --primary-color: #4A90D9;
+  --primary-light: #6BA8E8;
+  --primary-dark: #3A7BC8;
+  --success-color: #52C41A;
+  --warning-color: #FAAD14;
+  --error-color: #FF4D4F;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-placeholder: #999999;
+  --border-color: #E5E5E5;
+  --bg-color: #F5F5F5;
+  --white: #FFFFFF;
+  
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', Arial, sans-serif;
+  font-size: 28rpx;
+  color: var(--text-primary);
+  background-color: var(--bg-color);
+  box-sizing: border-box;
+}
+
+/* 通用容器 */
+.container {
+  padding: 30rpx;
+}
+
+/* 页面标题 */
+.page-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 30rpx;
+}
+
+/* 卡片样式 */
+.card {
+  background: var(--white);
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 按钮样式 */
+.btn-primary {
+  background: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 12rpx;
+  font-size: 32rpx;
+  padding: 24rpx 40rpx;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.btn-primary:active {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  background: var(--white);
+  color: var(--primary-color);
+  border: 2rpx solid var(--primary-color);
+  border-radius: 12rpx;
+  font-size: 32rpx;
+  padding: 22rpx 38rpx;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.btn-disabled {
+  background: #CCCCCC;
+  color: var(--white);
+  border: none;
+}
+
+/* 表单样式 */
+.form-group {
+  margin-bottom: 30rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 28rpx;
+  color: var(--text-secondary);
+  margin-bottom: 16rpx;
+}
+
+.form-input {
+  background: var(--bg-color);
+  border: 2rpx solid var(--border-color);
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 32rpx;
+  color: var(--text-primary);
+}
+
+.form-input:focus {
+  border-color: var(--primary-color);
+}
+
+/* 列表样式 */
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  background: var(--white);
+  border-bottom: 1rpx solid var(--border-color);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item-icon {
+  width: 48rpx;
+  height: 48rpx;
+  margin-right: 24rpx;
+}
+
+.list-item-content {
+  flex: 1;
+}
+
+.list-item-title {
+  font-size: 32rpx;
+  color: var(--text-primary);
+  margin-bottom: 8rpx;
+}
+
+.list-item-desc {
+  font-size: 26rpx;
+  color: var(--text-secondary);
+}
+
+.list-item-arrow {
+  width: 24rpx;
+  height: 24rpx;
+  margin-left: 16rpx;
+}
+
+/* 状态标签 */
+.status-tag {
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.status-pending {
+  background: #FFF7E6;
+  color: #FA8C16;
+}
+
+.status-paid {
+  background: #E6F7FF;
+  color: #1890FF;
+}
+
+.status-printing {
+  background: #F0F5FF;
+  color: #597EF7;
+}
+
+.status-completed {
+  background: #F6FFED;
+  color: #52C41A;
+}
+
+.status-cancelled {
+  background: #FFF1F0;
+  color: #FF4D4F;
+}
+
+/* 价格样式 */
+.price {
+  color: #FF4D4F;
+  font-weight: 600;
+}
+
+.price-large {
+  font-size: 48rpx;
+}
+
+.price-unit {
+  font-size: 24rpx;
+  margin-left: 4rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 60rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  width: 200rpx;
+  height: 200rpx;
+  margin-bottom: 30rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: var(--text-placeholder);
+  margin-bottom: 30rpx;
+}
+
+/* 加载状态 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40rpx;
+}
+
+/* 分割线 */
+.divider {
+  height: 1rpx;
+  background: var(--border-color);
+  margin: 20rpx 0;
+}
+
+/* 安全区域 */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Flex 布局辅助类 */
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+/* 文字对齐 */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+/* 间距辅助类 */
+.mt-10 { margin-top: 10rpx; }
+.mt-20 { margin-top: 20rpx; }
+.mt-30 { margin-top: 30rpx; }
+.mb-10 { margin-bottom: 10rpx; }
+.mb-20 { margin-bottom: 20rpx; }
+.mb-30 { margin-bottom: 30rpx; }
+.ml-10 { margin-left: 10rpx; }
+.ml-20 { margin-left: 20rpx; }
+.mr-10 { margin-right: 10rpx; }
+.mr-20 { margin-right: 20rpx; }
+.p-20 { padding: 20rpx; }
+.p-30 { padding: 30rpx; }

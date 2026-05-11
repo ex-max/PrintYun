@@ -1,0 +1,46 @@
+<!--pages/printplaces/list.wxml-->
+<view class="container">
+  <view class="place-list" wx:if="{{places.length > 0}}">
+    <view class="place-card card" wx:for="{{places}}" wx:key="key">
+      <view class="place-header">
+        <image class="place-icon" src="/assets/icons/location.png"></image>
+        <view class="place-name">{{item.name}}</view>
+        <view class="place-status {{item.status === 'open' ? 'open' : 'closed'}}">
+          {{item.status === 'open' ? '营业中' : '已打烊'}}
+        </view>
+      </view>
+      
+      <view class="place-info">
+        <view class="info-row">
+          <text class="info-label">地址</text>
+          <text class="info-value">{{item.address}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.phone}}">
+          <text class="info-label">电话</text>
+          <text class="info-value phone-link" bindtap="makePhoneCall" data-phone="{{item.phone}}">{{item.phone}}</text>
+        </view>
+        <view class="info-row" wx:if="{{item.businessHours}}">
+          <text class="info-label">营业时间</text>
+          <text class="info-value">{{item.businessHours}}</text>
+        </view>
+      </view>
+      
+      <view class="place-actions">
+        <button class="btn-nav" bindtap="openLocation" data-place="{{item}}">
+          <image class="action-icon" src="/assets/icons/navigation.png"></image>
+          导航
+        </button>
+        <button class="btn-print" bindtap="goToPrint" data-place="{{item.key}}">
+          <image class="action-icon" src="/assets/icons/print.png"></image>
+          去打印
+        </button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && places.length === 0}}">
+    <image class="empty-icon" src="/assets/icons/empty-place.png"></image>
+    <view class="empty-text">暂无打印点</view>
+  </view>
+</view>

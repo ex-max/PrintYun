@@ -1,0 +1,195 @@
+/* pages/pay/success.wxss */
+
+.container {
+  padding: 60rpx 30rpx;
+  background: linear-gradient(180deg, #E8F4FD 0%, #F5F5F5 100%);
+  min-height: 100vh;
+  text-align: center;
+}
+
+/* 成功图标 */
+.success-icon-wrap {
+  margin-bottom: 30rpx;
+}
+
+.success-icon {
+  width: 160rpx;
+  height: 160rpx;
+}
+
+.success-text {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #52C41A;
+  margin-bottom: 16rpx;
+}
+
+.success-hint {
+  font-size: 28rpx;
+  color: #999999;
+  margin-bottom: 40rpx;
+}
+
+/* 取件码 */
+.pickup-code {
+  text-align: center;
+  padding: 40rpx 30rpx;
+  margin-bottom: 20rpx;
+  background: #FFFFFF;
+  border: 4rpx solid #52C41A;
+}
+
+.code-label {
+  font-size: 26rpx;
+  color: #999999;
+  margin-bottom: 16rpx;
+}
+
+.code-value {
+  font-size: 56rpx;
+  font-weight: 700;
+  color: #333333;
+  letter-spacing: 8rpx;
+  margin-bottom: 16rpx;
+}
+
+.code-tip {
+  font-size: 24rpx;
+  color: #52C41A;
+}
+
+/* 订单信息 */
+.order-info {
+  text-align: left;
+  margin-bottom: 20rpx;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  font-size: 28rpx;
+}
+
+.info-label {
+  color: #999999;
+}
+
+.info-value {
+  color: #333333;
+}
+
+.info-value.price {
+  color: #FF4D4F;
+  font-weight: 600;
+}
+
+/* 打印点 */
+.print-place {
+  text-align: left;
+  margin-bottom: 20rpx;
+}
+
+.place-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.place-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-right: 12rpx;
+}
+
+.place-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333333;
+}
+
+.place-address {
+  font-size: 28rpx;
+  color: #666666;
+  margin-bottom: 24rpx;
+}
+
+.place-actions {
+  display: flex;
+  gap: 20rpx;
+}
+
+.btn-nav,
+.btn-phone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  margin: 0;
+  line-height: normal;
+}
+
+.btn-nav {
+  background: #4A90D9;
+  color: #FFFFFF;
+  border: none;
+}
+
+.btn-phone {
+  background: #FFFFFF;
+  color: #4A90D9;
+  border: 1rpx solid #4A90D9;
+}
+
+.btn-nav::after,
+.btn-phone::after {
+  border: none;
+}
+
+.nav-icon,
+.phone-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 8rpx;
+}
+
+/* 操作按钮 */
+.action-buttons {
+  margin-top: 40rpx;
+}
+
+.btn-order {
+  background: #4A90D9;
+  color: #FFFFFF;
+  font-size: 32rpx;
+  padding: 24rpx;
+  border-radius: 12rpx;
+  border: none;
+  margin: 0;
+  margin-bottom: 20rpx;
+  width: 100%;
+  line-height: normal;
+}
+
+.btn-order::after {
+  border: none;
+}
+
+.btn-home {
+  background: #FFFFFF;
+  color: #666666;
+  font-size: 28rpx;
+  padding: 20rpx;
+  border-radius: 12rpx;
+  border: 1rpx solid #E5E5E5;
+  margin: 0;
+  width: 100%;
+  line-height: normal;
+}
+
+.btn-home::after {
+  border: none;
+}

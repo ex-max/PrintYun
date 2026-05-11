@@ -1,0 +1,166 @@
+/* pages/scan/index.wxss */
+
+.container {
+  padding: 60rpx 30rpx;
+  background: #F5F5F5;
+  min-height: 100vh;
+}
+
+.scan-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #FFFFFF;
+  border-radius: 20rpx;
+  padding: 80rpx 40rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.scan-icon {
+  width: 160rpx;
+  height: 160rpx;
+  margin-bottom: 30rpx;
+}
+
+.scan-text {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 16rpx;
+}
+
+.scan-hint {
+  font-size: 26rpx;
+  color: #999999;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin: 40rpx 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1rpx;
+  background: #E5E5E5;
+}
+
+.divider-text {
+  padding: 0 24rpx;
+  font-size: 26rpx;
+  color: #999999;
+}
+
+.input-area {
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.order-input {
+  flex: 1;
+  background: #F5F5F5;
+  border: 2rpx solid #E5E5E5;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  font-size: 30rpx;
+  color: #333333;
+}
+
+.btn-query {
+  background: #4A90D9;
+  color: #FFFFFF;
+  font-size: 30rpx;
+  padding: 24rpx 40rpx;
+  border-radius: 12rpx;
+  border: none;
+  margin: 0;
+  line-height: normal;
+}
+
+.btn-query::after {
+  border: none;
+}
+
+.btn-query[disabled] {
+  background: #CCCCCC;
+}
+
+.recent-section {
+  margin-top: 20rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333333;
+  margin-bottom: 20rpx;
+}
+
+.recent-list {
+  background: #FFFFFF;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #F5F5F5;
+}
+
+.recent-item:last-child {
+  border-bottom: none;
+}
+
+.recent-info {
+  flex: 1;
+}
+
+.recent-name {
+  font-size: 30rpx;
+  color: #333333;
+  margin-bottom: 8rpx;
+}
+
+.recent-time {
+  font-size: 24rpx;
+  color: #999999;
+}
+
+.recent-status {
+  font-size: 24rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 6rpx;
+}
+
+.status-pending {
+  background: #FFF7E6;
+  color: #FA8C16;
+}
+
+.status-paid {
+  background: #E6F7FF;
+  color: #1890FF;
+}
+
+.status-printing {
+  background: #F0F5FF;
+  color: #597EF7;
+}
+
+.status-completed {
+  background: #F6FFED;
+  color: #52C41A;
+}
+
+.status-cancelled {
+  background: #FFF1F0;
+  color: #FF4D4F;
+}

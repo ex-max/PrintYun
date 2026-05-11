@@ -1,0 +1,97 @@
+<!--pages/order/detail.wxml-->
+<view class="container">
+  <!-- 订单状态 -->
+  <view class="status-card card">
+    <view class="status-icon-wrap">
+      <image class="status-icon" src="{{statusIcon}}"></image>
+    </view>
+    <view class="status-text">{{orderInfo.statusText}}</view>
+    <view class="status-hint">{{statusHint}}</view>
+  </view>
+
+  <!-- 订单信息 -->
+  <view class="info-card card">
+    <view class="card-title">订单信息</view>
+    <view class="info-list">
+      <view class="info-item">
+        <text class="info-label">订单号</text>
+        <text class="info-value">{{orderInfo.tradeNumber}}</text>
+        <text class="info-copy" bindtap="copyTradeNumber">复制</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">文件名</text>
+        <text class="info-value file-name-value">{{orderInfo.fileName}}</text>
+        <text class="info-preview" bindtap="previewFile" wx:if="{{orderInfo.filePreviewUrl}}">预览</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">打印点</text>
+        <text class="info-value">{{orderInfo.printPlaceName}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">纸张</text>
+        <text class="info-value">{{orderInfo.paperSize}} · {{orderInfo.directionText}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">打印方式</text>
+        <text class="info-value">{{orderInfo.printWayText}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">颜色</text>
+        <text class="info-value">{{orderInfo.colorText}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">份数</text>
+        <text class="info-value">{{orderInfo.copies}} 份</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">页数</text>
+        <text class="info-value">{{orderInfo.pages}} 页</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">金额</text>
+        <text class="info-value price">¥{{orderInfo.amount}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">创建时间</text>
+        <text class="info-value">{{orderInfo.createdAt}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 打印点信息 -->
+  <view class="place-card card" wx:if="{{printPlace}}">
+    <view class="card-title">打印点信息</view>
+    <view class="place-info">
+      <view class="place-name">{{printPlace.name}}</view>
+      <view class="place-address">{{printPlace.address}}</view>
+      <view class="place-row" wx:if="{{printPlace.phone}}">
+        <image class="place-icon" src="/assets/icons/phone.png"></image>
+        <text class="place-phone" bindtap="makePhoneCall">{{printPlace.phone}}</text>
+      </view>
+      <view class="place-row" wx:if="{{printPlace.businessHours}}">
+        <image class="place-icon" src="/assets/icons/clock.png"></image>
+        <text>{{printPlace.businessHours}}</text>
+      </view>
+    </view>
+    <button class="btn-nav" bindtap="openLocation">
+      <image class="nav-icon" src="/assets/icons/navigation.png"></image>
+      导航前往
+    </button>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-bar safe-area-bottom">
+    <button class="btn-preview" bindtap="previewFile" wx:if="{{orderInfo.filePreviewUrl}}">
+      文件预览
+    </button>
+    <button class="btn-reprint" bindtap="reprintOrder" wx:if="{{orderInfo.status === 3}}">
+      再次打印
+    </button>
+    <button class="btn-cancel" bindtap="cancelOrder" wx:if="{{orderInfo.status === 0}}">
+      取消订单
+    </button>
+    <button class="btn-pay" bindtap="goToPay" wx:if="{{orderInfo.status === 0}}">
+      去支付
+    </button>
+  </view>
+</view>

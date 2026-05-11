@@ -1,0 +1,217 @@
+<!--pages/upload/upload.wxml-->
+<view class="container">
+  <!-- 文件来源选择界面 -->
+  <view class="source-select" wx:if="{{fileList.length === 0}}">
+    <view class="source-title">选择文件</view>
+    <view class="source-options">
+      <!-- 从微信聊天记录选择 -->
+      <view class="source-item" bindtap="chooseFromChat">
+        <view class="source-icon-wrap">
+          <image class="source-icon" src="/assets/icons/chat.png"></image>
+        </view>
+        <view class="source-info">
+          <view class="source-name">从微信聊天记录选择</view>
+          <view class="source-desc">选择微信聊天中接收的文件</view>
+        </view>
+        <image class="source-arrow" src="/assets/icons/arrow-right.png"></image>
+      </view>
+
+      <!-- 从手机文件选择 -->
+      <view class="source-item" bindtap="chooseFromFile">
+        <view class="source-icon-wrap">
+          <image class="source-icon" src="/assets/icons/file.png"></image>
+        </view>
+        <view class="source-info">
+          <view class="source-name">从手机选择文件</view>
+          <view class="source-desc">选择手机中的文档文件</view>
+        </view>
+        <image class="source-arrow" src="/assets/icons/arrow-right.png"></image>
+      </view>
+    </view>
+
+    <!-- 提示信息 -->
+    <view class="source-tip">
+      <text>支持格式：PDF、图片、Word、Excel、PPT</text>
+      <text>单文件最大 50MB，支持多选</text>
+    </view>
+  </view>
+
+  <!-- 文件列表区 -->
+  <view class="file-list-section card" wx:if="{{fileList.length > 0}}">
+    <view class="section-header">
+      <view class="section-title">已选文件 ({{fileList.length}})</view>
+      <view class="section-actions">
+        <text class="action-text" bindtap="addMoreFiles">+ 添加文件</text>
+        <text class="action-text danger" bindtap="clearAllFiles">清空</text>
+      </view>
+    </view>
+    
+    <view class="file-list">
+      <view class="file-item {{item.uploading ? 'uploading' : ''}}" wx:for="{{fileList}}" wx:key="id">
+        <view class="file-icon-wrap">
+          <image class="file-icon" src="/assets/icons/file-{{item.type}}.png"></image>
+        </view>
+        <view class="file-info">
+          <view class="file-name">{{item.name}}</view>
+          <view class="file-meta">
+            <text>{{item.size}}</text>
+            <text wx:if="{{item.pages > 0}}"> · {{item.pages}}页</text>
+            <text wx:if="{{item.uploading}}" class="uploading-text"> · 上传中...</text>
+            <text wx:if="{{item.converting}}" class="converting-text"> · 转换中...</text>
+          </view>
+        </view>
+        <view class="file-actions">
+          <text class="action-btn preview" bindtap="previewFile" data-index="{{index}}" wx:if="{{item.type === 'pdf' || item.type === 'image'}}">预览</text>
+          <text class="action-btn remove" bindtap="removeFile" data-index="{{index}}">移除</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 打印参数表单 -->
+  <view class="form-section card" wx:if="{{fileList.length > 0 && !hasUploading}}">
+    <view class="form-title">
+      <text>打印参数</text>
+      <view class="preset-actions">
+        <text class="preset-action" bindtap="showPresetPicker" wx:if="{{presets.length > 0}}">使用预设</text>
+        <text class="preset-action" bindtap="saveAsPreset">保存预设</text>
+      </view>
+    </view>
+    
+    <!-- 打印点 -->
+    <view class="form-group">
+      <view class="form-label">打印点</view>
+      <picker mode="selector" range="{{printPlaces}}" range-key="name" value="{{printPlaceIndex}}" bindchange="onPrintPlaceChange">
+        <view class="picker-value">
+          {{printPlaces[printPlaceIndex].name || '请选择打印点'}}
+          <image class="picker-arrow" src="/assets/icons/arrow-down.png"></image>
+        </view>
+      </picker>
+    </view>
+
+    <!-- 纸张大小 -->
+    <view class="form-group">
+      <view class="form-label">纸张大小</view>
+      <view class="radio-group">
+        <view class="radio-item {{formData.paperSize === 'A4' ? 'active' : ''}}" bindtap="onPaperSizeChange" data-value="A4">
+          A4
+        </view>
+      </view>
+    </view>
+
+    <!-- 打印方向 -->
+    <view class="form-group">
+      <view class="form-label">打印方向</view>
+      <view class="radio-group">
+        <view class="radio-item {{formData.direction === '3' ? 'active' : ''}}" bindtap="onDirectionChange" data-value="3">
+          竖版
+        </view>
+        <view class="radio-item {{formData.direction === '4' ? 'active' : ''}}" bindtap="onDirectionChange" data-value="4">
+          横版
+        </view>
+      </view>
+    </view>
+
+    <!-- 打印方式 -->
+    <view class="form-group">
+      <view class="form-label">打印方式</view>
+      <view class="radio-group">
+        <view class="radio-item {{formData.printWay === 'one-sided' ? 'active' : ''}}" bindtap="onPrintWayChange" data-value="one-sided">
+          单面
+        </view>
+        <view class="radio-item {{formData.printWay === 'two-sided-long-edge' ? 'active' : ''}}" bindtap="onPrintWayChange" data-value="two-sided-long-edge">
+          双面长边
+        </view>
+        <view class="radio-item {{formData.printWay === 'two-sided-short-edge' ? 'active' : ''}}" bindtap="onPrintWayChange" data-value="two-sided-short-edge">
+          双面短边
+        </view>
+      </view>
+    </view>
+
+    <!-- 颜色 -->
+    <view class="form-group">
+      <view class="form-label">颜色</view>
+      <view class="radio-group">
+        <view class="radio-item {{formData.color === 'CMYGray' ? 'active' : ''}}" bindtap="onColorChange" data-value="CMYGray">
+          黑白
+        </view>
+        <view class="radio-item {{formData.color === 'RGB' ? 'active' : ''}}" bindtap="onColorChange" data-value="RGB">
+          彩色
+        </view>
+      </view>
+    </view>
+
+    <!-- 份数 -->
+    <view class="form-group">
+      <view class="form-label">打印份数</view>
+      <view class="stepper">
+        <button class="stepper-btn minus" bindtap="onCopiesMinus" disabled="{{formData.copies <= 1}}">-</button>
+        <input class="stepper-input" type="number" value="{{formData.copies}}" bindinput="onCopiesInput" />
+        <button class="stepper-btn plus" bindtap="onCopiesPlus" disabled="{{formData.copies >= 99}}">+</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 价格计算 -->
+  <view class="price-section card" wx:if="{{fileList.length > 0 && !hasUploading}}">
+    <view class="price-row">
+      <view class="price-label">文件数</view>
+      <view class="price-value">{{fileList.length}} 个</view>
+    </view>
+    <view class="price-row">
+      <view class="price-label">总页数</view>
+      <view class="price-value">{{totalPages}} 页</view>
+    </view>
+    <view class="price-row">
+      <view class="price-label">单价</view>
+      <view class="price-value">{{priceInfo.unitPrice}} 元/页</view>
+    </view>
+    <view class="price-row">
+      <view class="price-label">份数</view>
+      <view class="price-value">{{formData.copies}} 份</view>
+    </view>
+    <view class="price-total">
+      <view class="price-total-label">预估金额</view>
+      <view class="price-total-value">
+        <text class="price-currency">¥</text>
+        <text class="price-amount">{{priceInfo.total}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-bar safe-area-bottom" wx:if="{{fileList.length > 0 && !hasUploading}}">
+    <view class="price-preview">
+      <text class="price-preview-label">合计：</text>
+      <text class="price-preview-value">¥{{priceInfo.total}}</text>
+    </view>
+    <button class="btn-submit" bindtap="submitOrder" disabled="{{submitting}}">
+      {{submitting ? '提交中...' : '确认提交'}}
+    </button>
+  </view>
+
+  <!-- 预设选择弹窗 -->
+  <view class="preset-picker-mask" wx:if="{{showPresetPicker}}" bindtap="hidePresetPicker"></view>
+  <view class="preset-picker" wx:if="{{showPresetPicker}}">
+    <view class="preset-picker-header">
+      <text class="preset-picker-title">选择预设配置</text>
+      <text class="preset-close" bindtap="hidePresetPicker">关闭</text>
+    </view>
+    <scroll-view scroll-y style="max-height: 60vh;">
+      <view class="preset-item" wx:for="{{presets}}" wx:key="id" bindtap="selectPreset" data-index="{{index}}">
+        <view class="preset-item-info">
+          <view class="preset-item-name">{{item.name}}</view>
+          <view class="preset-item-desc">
+            {{item.color === 'CMYGray' ? '黑白' : '彩色'}} · 
+            {{item.printWay === 'one-sided' ? '单面' : '双面'}} · 
+            {{item.copies}}份
+          </view>
+        </view>
+        <text class="preset-delete" catchtap="deletePreset" data-id="{{item.id}}">删除</text>
+      </view>
+      <view class="preset-empty" wx:if="{{presets.length === 0}}">
+        暂无预设配置
+      </view>
+    </scroll-view>
+  </view>
+</view>

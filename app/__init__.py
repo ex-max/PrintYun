@@ -18,6 +18,7 @@ from app.control.json import jsons
 from app.test.test_route import test
 from app.test.ali_pay import cloud_pay
 from app.control.local_print import local_print
+from app.control.mp_api import mp_api
 from app.models import db, User
 from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
@@ -63,6 +64,7 @@ app.register_blueprint(cloud_pay, url_prefix='/cloud_pay')
 app.register_blueprint(admin, url_prefix='/admin')
 app.register_blueprint(jsons, url_prefix='/jsons')
 app.register_blueprint(local_print, url_prefix='/local')
+app.register_blueprint(mp_api, url_prefix='/api/mp')
 
 # ---- 蓝图注册完成后追加频率限制（避免循环引用）----
 limiter.limit('5 per minute')(app.view_functions['login.register'])
@@ -158,6 +160,34 @@ def _ensure_user_is_active_column():
 
 
 _ensure_user_is_active_column()
+
+
+def _ensure_user_profile_columns():
+    """小程序兼容：若 User 表缺少 Nickname / Avatar_Url 列，启动时补上。
+    幂等：已存在则跳过，失败只警告不阻塞.
+    """
+    _log = logging.getLogger('init')
+    from sqlalchemy import text, inspect
+    with app.app_context():
+        try:
+            insp = inspect(db.engine)
+            cols = {c['name'] for c in insp.get_columns('User')}
+            for col_name, col_def in [
+                ('Nickname', "ALTER TABLE `User` ADD COLUMN `Nickname` VARCHAR(128) NOT NULL DEFAULT ''"),
+                ('Avatar_Url', "ALTER TABLE `User` ADD COLUMN `Avatar_Url` VARCHAR(512) NOT NULL DEFAULT ''"),
+            ]:
+                if col_name not in cols:
+                    try:
+                        with db.engine.begin() as conn:
+                            conn.execute(text(col_def))
+                        _log.info('已为 User 表补充 %s 列', col_name)
+                    except Exception as e:
+                        _log.warning('添加 User.%s 列失败：%s', col_name, e)
+        except Exception as e:
+            _log.warning('User 扩展列检查失败：%s', e)
+
+
+_ensure_user_profile_columns()
 
 
 def _ensure_new_tables_and_seed():

@@ -1,0 +1,73 @@
+<!--pages/idcard/index.wxml-->
+<view class="container">
+  <view class="tip-card">
+    <image class="tip-icon" src="/assets/icons/warning.png"></image>
+    <view class="tip-text">请确保身份证照片清晰、完整、无遮挡。身份证信息仅用于打印，打印完成后将自动删除。</view>
+  </view>
+
+  <!-- 身份证正反面 -->
+  <view class="idcard-section">
+    <view class="idcard-item">
+      <view class="idcard-label">人像面</view>
+      <view class="idcard-upload" bindtap="uploadFront">
+        <image wx:if="{{frontImage}}" class="idcard-preview" src="{{frontImage}}" mode="aspectFit"></image>
+        <view wx:else class="upload-placeholder">
+          <image class="upload-icon" src="/assets/icons/camera.png"></image>
+          <text>点击上传人像面</text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="idcard-item">
+      <view class="idcard-label">国徽面</view>
+      <view class="idcard-upload" bindtap="uploadBack">
+        <image wx:if="{{backImage}}" class="idcard-preview" src="{{backImage}}" mode="aspectFit"></image>
+        <view wx:else class="upload-placeholder">
+          <image class="upload-icon" src="/assets/icons/camera.png"></image>
+          <text>点击上传国徽面</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 打印参数 -->
+  <view class="form-section card" wx:if="{{frontImage && backImage}}">
+    <view class="form-title">打印参数</view>
+    
+    <view class="form-group">
+      <view class="form-label">打印份数</view>
+      <view class="stepper">
+        <button class="stepper-btn minus" bindtap="onCopiesMinus" disabled="{{copies <= 1}}">-</button>
+        <input class="stepper-input" type="number" value="{{copies}}" bindinput="onCopiesInput" />
+        <button class="stepper-btn plus" bindtap="onCopiesPlus" disabled="{{copies >= 10}}">+</button>
+      </view>
+    </view>
+  </view>
+
+  <!-- 价格 -->
+  <view class="price-card card" wx:if="{{frontImage && backImage}}">
+    <view class="price-row">
+      <text class="price-label">单价</text>
+      <text class="price-value">1.00 元/份</text>
+    </view>
+    <view class="price-row">
+      <text class="price-label">份数</text>
+      <text class="price-value">{{copies}} 份</text>
+    </view>
+    <view class="price-total">
+      <text class="price-label">合计</text>
+      <text class="price-amount">¥{{totalPrice}}</text>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="bottom-bar safe-area-bottom" wx:if="{{frontImage && backImage}}">
+    <view class="price-preview">
+      <text class="preview-label">合计：</text>
+      <text class="preview-value">¥{{totalPrice}}</text>
+    </view>
+    <button class="btn-submit" bindtap="submitOrder" disabled="{{submitting}}">
+      {{submitting ? '提交中...' : '确认提交'}}
+    </button>
+  </view>
+</view>

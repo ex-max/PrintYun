@@ -1,0 +1,37 @@
+<!--pages/user/bindPhone.wxml-->
+<view class="container">
+  <view class="tip-card">
+    <image class="tip-icon" src="/assets/icons/info.png"></image>
+    <view class="tip-text">绑定手机号后可使用手机号在 Web 端登录，并接收订单短信通知</view>
+  </view>
+
+  <view class="form-card card">
+    <view class="form-title">绑定手机号</view>
+    
+    <button class="btn-wechat-phone" open-type="getPhoneNumber" bindgetphonenumber="getPhoneNumber">
+      <image class="btn-icon" src="/assets/icons/wechat.png"></image>
+      使用微信手机号快速绑定
+    </button>
+    
+    <view class="divider-text">
+      <view class="divider-line"></view>
+      <text>或</text>
+      <view class="divider-line"></view>
+    </view>
+    
+    <view class="form-group">
+      <input class="form-input" type="number" placeholder="请输入手机号" maxlength="11" value="{{phone}}" bindinput="onPhoneInput" />
+    </view>
+    
+    <view class="form-group code-group">
+      <input class="form-input code-input" type="number" placeholder="请输入验证码" maxlength="6" value="{{code}}" bindinput="onCodeInput" />
+      <button class="btn-code" disabled="{{sendingCode || countdown > 0}}" bindtap="sendCode">
+        {{countdown > 0 ? countdown + 's后重试' : '获取验证码'}}
+      </button>
+    </view>
+    
+    <button class="btn-submit" bindtap="submitBind" disabled="{{!canSubmit || submitting}}">
+      {{submitting ? '绑定中...' : '确认绑定'}}
+    </button>
+  </view>
+</view>

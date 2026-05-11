@@ -1,0 +1,87 @@
+<!--pages/user/index.wxml-->
+<view class="container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card">
+    <view class="user-info">
+      <image class="user-avatar" src="{{userInfo.avatarUrl || '/assets/icons/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="user-text">
+        <view class="user-name">{{userInfo.nickname || '微信用户'}}</view>
+        <view class="user-phone" wx:if="{{userInfo.avatarUrl}}">已授权微信头像昵称</view>
+        <view class="user-phone" wx:else bindtap="updateProfile">点击授权头像昵称</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 消费统计 -->
+  <view class="stats-card card">
+    <view class="stats-title">消费统计</view>
+    <view class="stats-row">
+      <view class="stats-item">
+        <view class="stats-value">{{stats.totalOrders}}</view>
+        <view class="stats-label">累计订单</view>
+      </view>
+      <view class="stats-divider"></view>
+      <view class="stats-item">
+        <view class="stats-value">¥{{stats.totalAmount}}</view>
+        <view class="stats-label">累计消费</view>
+      </view>
+    </view>
+    <view class="stats-row" wx:if="{{stats.monthOrders > 0}}">
+      <view class="stats-item">
+        <view class="stats-value">{{stats.monthOrders}}</view>
+        <view class="stats-label">本月订单</view>
+      </view>
+      <view class="stats-divider"></view>
+      <view class="stats-item">
+        <view class="stats-value">¥{{stats.monthAmount}}</view>
+        <view class="stats-label">本月消费</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 功能列表 -->
+  <view class="menu-card card">
+    <view class="menu-item" bindtap="goToOrders">
+      <image class="menu-icon" src="/assets/icons/order.png"></image>
+      <view class="menu-text">我的订单</view>
+      <image class="menu-arrow" src="/assets/icons/arrow-right.png"></image>
+    </view>
+    
+    <view class="menu-item" bindtap="goToPrintPlaces">
+      <image class="menu-icon" src="/assets/icons/location.png"></image>
+      <view class="menu-text">打印点列表</view>
+      <image class="menu-arrow" src="/assets/icons/arrow-right.png"></image>
+    </view>
+    
+    <view class="menu-item" bindtap="contactService">
+      <image class="menu-icon" src="/assets/icons/service.png"></image>
+      <view class="menu-text">联系客服</view>
+      <image class="menu-arrow" src="/assets/icons/arrow-right.png"></image>
+    </view>
+  </view>
+
+  <!-- 其他链接 -->
+  <view class="menu-card card">
+    <view class="menu-item" bindtap="goToAgreement">
+      <image class="menu-icon" src="/assets/icons/doc.png"></image>
+      <view class="menu-text">用户协议</view>
+      <image class="menu-arrow" src="/assets/icons/arrow-right.png"></image>
+    </view>
+    
+    <view class="menu-item" bindtap="goToAbout">
+      <image class="menu-icon" src="/assets/icons/info.png"></image>
+      <view class="menu-text">关于我们</view>
+      <image class="menu-arrow" src="/assets/icons/arrow-right.png"></image>
+    </view>
+  </view>
+
+  <!-- 退出登录 -->
+  <view class="logout-section">
+    <button class="btn-logout" bindtap="logout">退出登录</button>
+  </view>
+
+  <!-- 版本信息 -->
+  <view class="version-info">
+    PrintYun云打印 v1.0.0
+  </view>
+</view>

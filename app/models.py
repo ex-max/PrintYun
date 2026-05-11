@@ -21,6 +21,8 @@ class User(db.Model, UserMixin):
     Born_Date_Day = db.Column(db.Date, default=datetime.date.today)
     Role = db.Column(db.String(128), default='guest', nullable=False)
     Is_Active = db.Column(db.Boolean(), default=True, nullable=False)  # 后台可禁用账号（False 时无法登录）
+    Nickname = db.Column(db.String(128), default='')  # 微信昵称
+    Avatar_Url = db.Column(db.String(512), default='')  # 微信头像URL
     Orders = db.relationship('Order', backref='User', lazy='dynamic')
 
     @property
